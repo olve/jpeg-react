@@ -1,8 +1,6 @@
 /* 
-  
   Dictionaries in this file:
     var JPEG_MARKERS (jpeg file markers)
-
 
   Links:
         Windows Patented padding (marker 0xEA1C): http://www.freepatentsonline.com/7421451.html
@@ -36,15 +34,6 @@
         Python IPTC parsing: https://github.com/chrisrossi/edwin/blob/master/src/edwin/jpeg/iptc.py
         decoding jpeg imagedata: https://github.com/notmasteryet/jpgjs
         decoding jpeg imagedata: https://github.com/mozilla/pdf.js/tree/master/src/core
-
-    A note on JPEGs edited by Windows:
-        Any JPEG edited by Windows will most likely contain a handful of "Padding" markers: 0xea1c.
-        Windows adds more data to Exif metadata by finding "dead zones" in the file, and storing data there.
-        This will either not affect you at all, or leave you flabbergasted for a couple of days, spouting "WTFs".
-
-        This method of editing/padding/adding data is patented by Windows, and is thoroughly explained in the patent specs here:
-        http://www.freepatentsonline.com/7421451.html
-
 */
 
 
@@ -52,7 +41,7 @@ function readJpegMarkers (buffer) {
 /*    catalogue all markers found in a JPEG file.
       arguments:
             buffer: JPEG file as byteArray.
-      example return value: {StartOfImage:[0], EndOFImage:[10000], App0:[2], App1[50, 90]}
+      example return value: {StartOfImage:[0], EndOFImage:[10000], App0:[2], App1:[50, 90]}
 */
       var array = new Uint8Array(buffer);
 

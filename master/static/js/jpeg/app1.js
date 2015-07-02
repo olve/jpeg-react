@@ -1,3 +1,12 @@
+/* A note on JPEGs edited by Windows:
+        Any JPEG edited by Windows will most likely contain a handful of "Padding" markers: 0xea1c.
+        Windows adds more data to Exif metadata by finding "dead zones" in the file, and storing data there
+        (They are mostly gigantic arrays of nullbytes)
+
+        This method of editing/padding/adding data is patented by Windows, and is thoroughly explained in the patent specs here:
+        http://www.freepatentsonline.com/7421451.html */
+
+
 function readJpegApp1Id(offset, buffer) {
 /*	read The ID following an APP1 marker, used to tell APP1 types apart (adobe/exif)
 		arguments:

@@ -2,7 +2,7 @@ var Jpeg = function(buffer) {
 	this.buffer = buffer;
 	this.markers = readJpegMarkers(this.buffer);
 	this.exif = this.readExif(this.markers);
-	this.encodedImageData = this.readEncodedImageData(this.markers);
+	//this.encodedImageData = this.readEncodedImageData(this.markers);
 	this.comment = this.markers.hasOwnProperty("Comment") ? readJpegComment(this.markers.Comment[0], this.buffer) : null;
 };
 Jpeg.prototype.readExif = function(markers) {
@@ -17,6 +17,7 @@ Jpeg.prototype.readExif = function(markers) {
 	return null;
 };
 Jpeg.prototype.readEncodedImageData = function(markers) {
+	//This method should be optimized and threaded.
 	if (!this.markers.hasOwnProperty("QuantTableDef")) {
 		return null;
 	}
