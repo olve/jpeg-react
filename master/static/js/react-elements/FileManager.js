@@ -38,7 +38,7 @@ var FileManager = React.createClass({
 	render: function() {
 		if (this.state.files.length) {
 			var activeFile = this.state.files[this.state.active];
-			var activeFileElement = activeFile ? activeFile.element : null;
+			var activeFileElement = activeFile ? activeFile.element : <span>No file selected</span>;
 			return (
 				<div className="file-manager">
 					<FileTabList files={this.state.files} setActive={this.setActive} active={this.state.active} />

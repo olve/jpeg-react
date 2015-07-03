@@ -1,47 +1,3 @@
-var Jpeg = function(buffer) {
-	this.buffer = buffer;
-	this.markers = readJpegMarkers(this.buffer);
-	this.exif = this.readExif(this.markers);
-	//this.encodedImageData = this.readEncodedImageData(this.markers);
-	this.comment = this.markers.hasOwnProperty("Comment") ? readJpegComment(this.markers.Comment[0], this.buffer) : null;
-};
-Jpeg.prototype.readExif = function(markers) {
-	if (markers.hasOwnProperty("App1")) {
-		for (var i = 0, len = markers.App1.length; i < len; i++) {
-			var offset = markers.App1[i];
-			if (readJpegApp1Id(offset, this.buffer) === "Exif") {
-				return readJpegExif(offset, this.buffer); //use first marker found; has there ever been a jpeg file with 2 exif segments?
-			}
-		}
-	}
-	return null;
-};
-Jpeg.prototype.readEncodedImageData = function(markers) {
-	//This method should be optimized and threaded.
-	if (!this.markers.hasOwnProperty("QuantTableDef")) {
-		return null;
-	}
-	//check DQT markers for whether or not they are for the main image data, or for embedded images (thumbnails etc)
-	var mainDQTOffset;
-	for (var i = 0, len = markers.QuantTableDef.length; i < len; i ++) {
-		var offset = markers.QuantTableDef[i];
-		if (this.exif !== null) {
-			if (!(offset > this.exif.offset && offset < this.exif.length)) {
-				//dqt marker was not found within an exif-segment, so it is not an embedded thumb.
-				mainDQTOffset = offset;
-			}
-		}
-		else {
-			mainDQTOffset = offset;
-		}
-	}
-	var encodedImageData = {
-		dqt: readJpegDQT(mainDQTOffset, this.buffer),
-	};
-	return encodedImageData;
-};
-
-
 var JpegExifTag = React.createClass({
 	changeValue: function(event) {
 		this.props.tag.onChangeHandler(event);
@@ -89,7 +45,6 @@ var JpegExif = React.createClass({
 		function buildTagList(ifd, dictionary) {
 			var tags = ifd.tagList.map(function(tag) {
 				tag.onChangeHandler = function(event) {
-					console.log(event.target.value);
 					this.value = [event.target.value];
 				}.bind(tag);
 				return <JpegExifTag tag={tag} key={tag.id} dictionary={dictionary} />;
@@ -141,15 +96,47 @@ var JpegComment = React.createClass({
 		);
 	},
 });
+var JpegPlaceholderMarker = React.createClass({
+	render: function() {
+		var marker = this.props.marker;
+		return (
+			<p>{marker.name} (0x{marker.marker.toString(16)}) at offset: {marker.offset}</p>
+		);
+	}
+});
+
+var Jpeg = function(buffer) {
+	this.buffer = buffer;
+	this.markers = readJpegMarkersList(this.buffer);
+};
 
 var JpegElement = React.createClass({
 	render: function() {
 		var jpeg = this.props.jpeg;
+
+		var elements = jpeg.markers.map(function(marker) {
+
+			switch(marker.name) {
+
+				case "App1":
+					var id = readJpegApp1Id(marker.offset, jpeg.buffer);
+					if (id === "Exif") {
+						//for persistent tag changes, this exif object must be stored on the Jpeg object and passed as a prop, not be generated in render()
+						return <JpegExif key={"exif-marker-"+marker.offset} exif={readJpegExif(marker.offset, jpeg.buffer)} />
+					}
+					break;
+				case "Comment":
+					return <JpegComment comment={readJpegComment(marker.offset, jpeg.buffer)} />
+				default:
+					return <JpegPlaceholderMarker marker={marker} />;
+			}
+
+		});
+
 		return (
 			<div className="Jpeg-element">
-				<JpegComment comment={jpeg.comment} />
-				<JpegExif exif={jpeg.exif} />
-
+				{elements}
+				<span>bytelength: {jpeg.buffer.byteLength}</span>
 			</div>
 		);
 	},

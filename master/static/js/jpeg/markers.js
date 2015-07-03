@@ -36,6 +36,43 @@
         decoding jpeg imagedata: https://github.com/mozilla/pdf.js/tree/master/src/core
 */
 
+function readJpegMarkersList(buffer) {
+
+    var array = new Uint8Array(buffer);
+
+    var markers = [];
+
+    for (var offset = 0, len = array.byteLength; offset < len; offset++) {
+
+        if (array[offset] === 0xFF) {
+            var marker = array[offset+1];
+            if (marker !== 0xFF && marker !== 0) {
+                marker += (0xFF<<8);
+                markers.push({
+                    offset: offset,
+                    name: JPEG_MARKERS[marker],
+                    marker: marker,
+                });
+            }
+        }
+        else if (array[offset] == 0x38) { //8
+            if (
+                array[offset+1] == 0x42 && //B
+                array[offset+2] == 0x49 && //I
+                array[offset+3] == 0x4D && //M
+                array[offset+4] == 0x04 &&
+                array[offset+5] == 0x04
+            ) {
+                markers.push({
+                    offset: offset,
+                    name: "iptc",
+                    marker: 0x38,
+                });
+            }
+        }
+    }
+    return markers;
+}
 
 function readJpegMarkers (buffer) {
 /*    catalogue all markers found in a JPEG file.
