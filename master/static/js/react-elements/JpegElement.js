@@ -96,41 +96,44 @@ var JpegComment = React.createClass({
 		);
 	},
 });
-var JpegPlaceholderMarker = React.createClass({
-	render: function() {
-		var marker = this.props.marker;
-		return (
-			<p>{marker.name} (0x{marker.marker.toString(16)}) at offset: {marker.offset}</p>
-		);
-	}
-});
-
+	
 var Jpeg = function(buffer) {
 	this.buffer = buffer;
 	this.markers = readJpegMarkersList(this.buffer);
+	this.parts = this.markers.map(function(marker) {
+
+		var part = {
+			marker: marker,
+			data: null,
+			element: null,
+		};
+
+		switch (marker.name) {
+			case "Comment":
+				part.data = readJpegComment(marker.offset, buffer);
+				part.element = <JpegComment key={"jpeg-com-"+marker.offset} comment={part.data} />;
+				return part;
+			case "App1":
+				var id = readJpegApp1Id(marker.offset, buffer);
+				if (id === "Exif") {
+					part.data = readJpegExif(marker.offset, buffer);
+					part.element = <JpegExif key={"jpeg-exif-"+marker.offset} exif={part.data} />;
+				}
+				return part;
+			default: 
+				part.element = <p key={"jpeg-marker-"+marker.offset}>{marker.name} (0x{marker.marker.toString(16)}) at offset: {marker.offset}</p>;
+				return part;
+		}
+
+	});
 };
 
 var JpegElement = React.createClass({
 	render: function() {
 		var jpeg = this.props.jpeg;
 
-		var elements = jpeg.markers.map(function(marker) {
-
-			switch(marker.name) {
-
-				case "App1":
-					var id = readJpegApp1Id(marker.offset, jpeg.buffer);
-					if (id === "Exif") {
-						//for persistent tag changes, this exif object must be stored on the Jpeg object and passed as a prop, not be generated in render()
-						return <JpegExif key={"exif-marker-"+marker.offset} exif={readJpegExif(marker.offset, jpeg.buffer)} />
-					}
-					break;
-				case "Comment":
-					return <JpegComment comment={readJpegComment(marker.offset, jpeg.buffer)} />
-				default:
-					return <JpegPlaceholderMarker marker={marker} />;
-			}
-
+		var elements = jpeg.parts.map(function(part) {
+			return part.element;
 		});
 
 		return (
