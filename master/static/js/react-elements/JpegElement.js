@@ -96,7 +96,7 @@ var JpegComment = React.createClass({
 		);
 	},
 });
-	
+
 var Jpeg = function(buffer) {
 	this.buffer = buffer;
 	this.markers = readJpegMarkersList(this.buffer);
@@ -108,23 +108,37 @@ var Jpeg = function(buffer) {
 			element: null,
 		};
 
+		var childElement = null;
+
 		switch (marker.name) {
 			case "Comment":
 				part.data = readJpegComment(marker.offset, buffer);
-				part.element = <JpegComment key={"jpeg-com-"+marker.offset} comment={part.data} />;
-				return part;
+				childElement = <JpegComment comment={part.data} />;
+				break;
 			case "App1":
 				var id = readJpegApp1Id(marker.offset, buffer);
 				if (id === "Exif") {
 					part.data = readJpegExif(marker.offset, buffer);
-					part.element = <JpegExif key={"jpeg-exif-"+marker.offset} exif={part.data} />;
+					childElement = <JpegExif exif={part.data} />;
 				}
-				return part;
-			default: 
-				part.element = <p key={"jpeg-marker-"+marker.offset}>{marker.name} (0x{marker.marker.toString(16)}) at offset: {marker.offset}</p>;
-				return part;
+				else {
+					childElement = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
+				}
+				break;
+			default:
+				//part.data = readJpegGenericSegment(marker.offset, buffer);
+				childElement = <p>{marker.name} (0x{marker.marker.toString(16)}) at offset: {marker.offset}</p>;
+				break;
 		}
 
+		part.element = (
+			<div key={"jpeg-marker-"+part.marker.offset}>
+				<input type="checkbox" />
+				{childElement}
+			</div>
+		);
+
+		return part;
 	});
 };
 
