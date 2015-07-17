@@ -106,6 +106,7 @@ var Jpeg = function(buffer) {
 			marker: marker,
 			data: null,
 			element: null,
+			includeWhenSaved: true,
 		};
 
 		var childElement = null;
@@ -133,13 +134,29 @@ var Jpeg = function(buffer) {
 
 		part.element = (
 			<div key={"jpeg-marker-"+part.marker.offset}>
-				<input type="checkbox" />
+				<input
+					type="checkbox"
+					checked={true}
+					onChange={function(event) {
+						part.includeWhenSaved = event.target.checked;
+					}}
+				/>
 				{childElement}
 			</div>
 		);
 
 		return part;
 	});
+	this.save = function() {
+		//Why does Jpeg.prototype.save not work? Why must we .bind to access the Jpeg as 'this'?
+		var data = [];
+		this.parts.forEach(function(part) {
+			if (part.includeWhenSaved) {
+				data.push(part);
+			}
+		});
+		console.log(data);
+	}.bind(this);
 };
 
 var JpegElement = React.createClass({
@@ -152,6 +169,7 @@ var JpegElement = React.createClass({
 
 		return (
 			<div className="Jpeg-element">
+				<button onClick={jpeg.save}>Save Jpeg</button>
 				{elements}
 				<span>bytelength: {jpeg.buffer.byteLength}</span>
 			</div>
