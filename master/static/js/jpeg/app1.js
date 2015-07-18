@@ -44,7 +44,6 @@ function readJpegAdobe(offset, buffer) {
 	}
 
 	return {
-		id: id,
 		xml: xml,
 		length: length,
 	};

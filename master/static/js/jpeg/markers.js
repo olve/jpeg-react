@@ -51,7 +51,7 @@ function readJpegMarkersList(buffer) {
                 markers.push({
                     offset: offset,
                     name: JPEG_MARKERS[marker],
-                    marker: marker,
+                    byteMarker: marker,
                 });
             }
         }
@@ -66,7 +66,7 @@ function readJpegMarkersList(buffer) {
                 markers.push({
                     offset: offset,
                     name: "iptc",
-                    marker: 0x38,
+                    byteMarker: 0x38,
                 });
             }
         }

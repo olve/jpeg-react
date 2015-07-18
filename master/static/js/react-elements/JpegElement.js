@@ -83,20 +83,6 @@ var JpegExif = React.createClass({
 		);
 	},
 });
-var JpegComment = React.createClass({
-	render: function() {
-		if (this.props.comment === null) {
-			return null;
-		}
-		return (
-			<div>
-				<h2>Comment</h2>
-				<p>{this.props.comment}</p>
-			</div>
-		);
-	},
-});
-
 var Jpeg = function(buffer) {
 	this.buffer = buffer;
 	this.markers = readJpegMarkersList(this.buffer);
@@ -104,73 +90,72 @@ var Jpeg = function(buffer) {
 
 		var part = {
 			marker: marker,
-			data: null,
 			element: null,
 			includeWhenSaved: true,
 		};
 
-		var childElement = null;
-
-		switch (marker.name) {
-			case "Comment":
-				part.data = readJpegComment(marker.offset, buffer);
-				childElement = <JpegComment comment={part.data} />;
+		switch (marker.byteMarker) {
+			case 0xFFFE: //Comment
+				part.element = (
+					<div>
+						<h2>Comment</h2>
+						<p>{readJpegComment(marker.offset, buffer)}</p>
+					</div>
+				);
 				break;
-			case "App1":
+			case 0xFFE1: //App1
 				var id = readJpegApp1Id(marker.offset, buffer);
 				if (id === "Exif") {
-					part.data = readJpegExif(marker.offset, buffer);
-					childElement = <JpegExif exif={part.data} />;
+					part.element = <JpegExif exif={readJpegExif(marker.offset, buffer)} />;
 				}
 				else {
-					childElement = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
+					part.element = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
 				}
 				break;
 			default:
-				//part.data = readJpegGenericSegment(marker.offset, buffer);
-				childElement = <p>{marker.name} (0x{marker.marker.toString(16)}) at offset: {marker.offset}</p>;
+				if (marker.byteMarker > 0xFFBF && marker.byteMarker < 0xFFFE) {
+					//bytes = readGeneric
+				}
+				part.element = <p>{marker.name} (0x{marker.byteMarker.toString(16)}) at offset: {marker.offset}</p>
 				break;
 		}
-
-		part.element = (
-			<div key={"jpeg-marker-"+part.marker.offset}>
-				<input
-					type="checkbox"
-					checked={true}
-					onChange={function(event) {
-						part.includeWhenSaved = event.target.checked;
-					}}
-				/>
-				{childElement}
-			</div>
-		);
-
 		return part;
 	});
 	this.save = function() {
 		//Why does Jpeg.prototype.save not work? Why must we .bind to access the Jpeg as 'this'?
-		var data = [];
 		this.parts.forEach(function(part) {
 			if (part.includeWhenSaved) {
-				data.push(part);
+				console.log(part.data);
 			}
 		});
-		console.log(data);
 	}.bind(this);
 };
-
+var JpegPart = React.createClass({
+	render: function() {
+		var part = this.props.part;
+		return (
+			<div className="jpeg-part">
+				<input type="checkbox" checked={part.includeWhenSaved} onChange={function(event) {
+						part.includeWhenSaved = event.target.checked;
+					}
+				} />
+				{part.element}
+			</div>
+		);
+	},
+});
 var JpegElement = React.createClass({
 	render: function() {
 		var jpeg = this.props.jpeg;
 
-		var elements = jpeg.parts.map(function(part) {
-			return part.element;
+		var parts = jpeg.parts.map(function(part) {
+			return <JpegPart key={"jpeg-part-"+part.marker.offset} part={part} />;
 		});
 
 		return (
 			<div className="Jpeg-element">
 				<button onClick={jpeg.save}>Save Jpeg</button>
-				{elements}
+				{parts}
 				<span>bytelength: {jpeg.buffer.byteLength}</span>
 			</div>
 		);
