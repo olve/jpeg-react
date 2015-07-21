@@ -83,16 +83,49 @@ var JpegExif = React.createClass({
 		);
 	},
 });
+
+var JpegPartElement = React.createClass({
+	render: function() {
+		var part = this.props.part;
+		return (
+			<div className="jpeg-part">
+				<input type="checkbox" defaultChecked={self.includeWhenSaved} onChange={part.onChange} />
+				{this.props.childElement || null}
+			</div>
+		);
+	},
+});
+
 var Jpeg = function(buffer) {
 	this.buffer = buffer;
 	this.markers = readJpegMarkersList(this.buffer);
+
+	var Part = function(marker) {
+		this.marker = marker;
+		this.includeWhenSaved = false;
+
+		var self = this;
+		var element = null;
+		Object.defineProperty(this, "element", {
+			get: function() {
+				return element;
+			},
+			set: function(child) {
+				element = <JpegPartElement key={"jpeg-part-"+self.marker.offset} part={self} childElement={child} />;
+			},
+		});
+		this.onChange = function(event) {
+			self.includeWhenSaved = event.target.checked;
+
+			//broken
+			self.element.forceUpdate();
+		};
+
+	};
+
 	this.parts = this.markers.map(function(marker) {
 
-		var part = {
-			marker: marker,
-			element: null,
-			includeWhenSaved: true,
-		};
+		var part = new Part(marker);
 
 		switch (marker.byteMarker) {
 			case 0xFFFE: //Comment
@@ -122,34 +155,20 @@ var Jpeg = function(buffer) {
 		return part;
 	});
 	this.save = function() {
-		//Why does Jpeg.prototype.save not work? Why must we .bind to access the Jpeg as 'this'?
+		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
 		this.parts.forEach(function(part) {
 			if (part.includeWhenSaved) {
-				console.log(part.data);
+				console.log(part.marker.byteMarker);
 			}
 		});
 	}.bind(this);
 };
-var JpegPart = React.createClass({
-	render: function() {
-		var part = this.props.part;
-		return (
-			<div className="jpeg-part">
-				<input type="checkbox" checked={part.includeWhenSaved} onChange={function(event) {
-						part.includeWhenSaved = event.target.checked;
-					}
-				} />
-				{part.element}
-			</div>
-		);
-	},
-});
 var JpegElement = React.createClass({
 	render: function() {
 		var jpeg = this.props.jpeg;
 
 		var parts = jpeg.parts.map(function(part) {
-			return <JpegPart key={"jpeg-part-"+part.marker.offset} part={part} />;
+			return part.element;
 		});
 
 		return (
