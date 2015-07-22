@@ -85,11 +85,17 @@ var JpegExif = React.createClass({
 });
 
 var JpegPartElement = React.createClass({
+	//this element is BUGGED. checkboxes do not update to reflect the active JPEG when you change tabs
+	onChange: function(event) {
+		this.props.part.onChange(event);
+		this.forceUpdate();
+		//this.refs.checkbox.forceUpdate();
+	},
 	render: function() {
-		var part = this.props.part;
 		return (
 			<div className="jpeg-part">
-				<input type="checkbox" defaultChecked={self.includeWhenSaved} onChange={part.onChange} />
+				//<input ref="checkbox" type="checkbox" value={this.props.part.includeWhenSaved} onChange={this.onChange} />
+				<input type="checkbox" value={this.props.part.includeWhenSaved} onChange={this.onChange} />
 				{this.props.childElement || null}
 			</div>
 		);
@@ -107,18 +113,16 @@ var Jpeg = function(buffer) {
 		var self = this;
 		var element = null;
 		Object.defineProperty(this, "element", {
+			//define getter and setter for element, to wrap the part's child element in a JpegPartElement component.
 			get: function() {
 				return element;
 			},
-			set: function(child) {
-				element = <JpegPartElement key={"jpeg-part-"+self.marker.offset} part={self} childElement={child} />;
+			set: function(childElement) {
+				element = <JpegPartElement childElement={childElement} part={self} key={"jpeg-part-"+self.marker.offset} />;
 			},
 		});
 		this.onChange = function(event) {
 			self.includeWhenSaved = event.target.checked;
-
-			//broken
-			self.element.forceUpdate();
 		};
 
 	};
