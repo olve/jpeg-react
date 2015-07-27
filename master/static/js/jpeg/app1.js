@@ -1,4 +1,7 @@
-/* A note on JPEGs edited by Windows:
+/* 
+	APP1, Application segment 1, bytemarker 0xFFE1, is a JPEG marker used to store EXIF-information, Adobe XML information, and probably more.
+
+	A note on JPEGs edited by Windows:
         Any JPEG edited by Windows will most likely contain a handful of "Padding" markers: 0xea1c.
         Windows adds more data to Exif metadata by finding "dead zones" in the file, and storing data there
         (They are mostly gigantic arrays of nullbytes)
