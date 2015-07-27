@@ -107,7 +107,7 @@ var JpegPartElement = React.createClass({
 	render: function() {
 		return (
 			<div className="jpeg-part">
-				<input type="checkbox" value={this.props.part.includeWhenSaved} onChange={this.onChange} />
+				<input type="checkbox" checked={this.props.part.includeWhenSaved} onChange={this.onChange} />
 				{this.props.childElement || null}
 			</div>
 		);
@@ -120,7 +120,7 @@ var Jpeg = function(buffer) {
 
 	var Part = function(marker) {
 		this.marker = marker;
-		this.includeWhenSaved = true;
+		this.includeWhenSaved = false;
 
 		var self = this;
 		var element = null;
@@ -134,8 +134,8 @@ var Jpeg = function(buffer) {
 			},
 		});
 		this.onChange = function(event) {
-			self.includeWhenSaved = event.target.checked;
-		};
+			this.includeWhenSaved = event.target.checked;
+		}.bind(this);
 		var bytes = null;
 		this.bytesGetter = function() {return bytes};
 		Object.defineProperty(this, "bytes", {
