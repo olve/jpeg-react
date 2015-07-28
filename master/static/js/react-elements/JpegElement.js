@@ -1,3 +1,5 @@
+var WORKER_PATH_BUILD_JPEG_FILE_BUFFER = "static/js/workers/buildJpegFileBuffer.js";
+
 var JpegExifTag = React.createClass({
 	changeValue: function(event) {
 		this.props.tag.onChangeHandler(event);
@@ -134,23 +136,6 @@ var Jpeg = function(buffer) {
 		this.onChange = function(event) {
 			this.includeWhenSaved = event.target.checked;
 		}.bind(this);
-		var bytes = null;
-		this.bytesGetter = function() {return bytes};
-		Object.defineProperty(this, "bytes", {
-			get: function() {
-				/* We define getters for the part's bytearray in the switch-statement below because we don't want 
-				users who might only be interested in reading parsed exif info have to wait for us to for example read
-				segments (parts) of the file that pertain only to the image-data. */
-				return self.bytesGetter();
-			},
-			set: function(val) {
-				bytes = val;
-				self.bytesGetter = function() {
-					//is this necessary?
-					return bytes;
-				};
-			},
-		});
 	};
 
 	this.parts = this.markers.map(function(marker) {
@@ -162,75 +147,37 @@ var Jpeg = function(buffer) {
 			//parse jpeg-segment. define getter for raw bytes of the part, and build raw bytes from edited comments, exif-tags, etc.
 			//also set part.element, for rendering. part.element has a setter-function, wrapping the element in a <JpegPartElement />
 			case 0xFFFE: //Comment
-				part.comment = new function() {
+				part.info = new function() {
 					this.value = readJpegComment(marker.offset, buffer);
 					this.onChange = function(event) {
 						//for bubbling events. We still need to forceUpdate any <input> fields to reflect the changed value.
 						this.value = event.target.value;
 					}.bind(this);
+					this.compileToBytes = function() {
+						var _bytes = [];
+						for (var i = 0, len = this.value.length; i < len; i++) {
+							_bytes.push(this.value.charCodeAt(i));
+						}
+						return _bytes;
+					};
 				};
-				part.bytesGetter = function() {
-					var _bytes = [];
-					for (var i = 0, len = part.comment.value.length; i < len; i++) {
-						_bytes.push(part.comment.value.charCodeAt(i));
-					}
-					return _bytes;
-				};
-				part.element = <JpegComment comment={part.comment} />;
+				part.element = <JpegComment comment={part.info} />;
 				break;
 			case 0xFFE1: //App1
 				var id = readJpegApp1Id(marker.offset, buffer);
 				if (id === "Exif") {
-					part.exif = readJpegExif(marker.offset, buffer);
-					part.bytesGetter = function() {return ["EXIF"];};
-					part.element = <JpegExif exif={part.exif} />;
+					part.info = readJpegExif(marker.offset, buffer);
+					part.info.compileToBytes = function() {
+						return [];
+					};
+					part.element = <JpegExif exif={part.info} />;
 				}
 				else {
 					//usually Adobe data (xml); check id and render accordingly.
-					part.bytesGetter = function() {return ["ADOBE"];};
 					part.element = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
 				}
 				break;
 			default:
-				if (
-					(marker.byteMarker > 0xFFBF && marker.byteMarker < 0xFFD8) ||
-					//includes restart-markers not in the dictionary, 0xFFD0-0xFFD7
-					(marker.byteMarker > 0xFFD9 && marker.byteMarker < 0xFFE1)
-				) {
-					part.bytesGetter = function() {
-						return readJpegGenericSegment(marker.offset, buffer);
-					};
-				}
-				else if (marker.byteMarker === 0xFFD8) {
-					part.bytesGetter = function() {
-						return [0xFF, 0xD8];
-					};
-				}
-				else if (marker.byteMarker === 0xFFD9) {
-					part.bytesGetter = function() {
-						return [0xFF, 0xD9];
-					};
-				}
-				else if (marker.name === "iptc") {
-					part.bytesGetter = function() {
-						function getIPTCLength(offset, buffer) {
-							var array = new Uint8Array(buffer);
-							var view = new DataView(buffer);
-							var nameHeaderLength = array[offset+7];
-							if (nameHeaderLength & 2 !== 0) nameHeaderLength += 1;
-							if (nameHeaderLength === 0) nameHeaderLength = 4;
-							return view.getUint16(offset + 6 + nameHeaderLength);							
-						}
-						var length = getIPTCLength(marker.offset, buffer);
-						return Array.prototype.slice.call(new Uint8Array, buffer, marker.offset, marker.offset+length);
-					};
-				}
-				else {
-					//skip unknown segments (app14, app2, ...)
-					part.bytesGetter = function() {
-						return [];
-					};
-				}
 				part.element = <p>{marker.name} (0x{marker.byteMarker.toString(16)}) at offset: {marker.offset}</p>
 				break;
 		}
@@ -238,13 +185,28 @@ var Jpeg = function(buffer) {
 	});
 	this.save = function() {
 		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
-		this.parts.forEach(function(part) {
-			if (part.includeWhenSaved) {
-				var bytes = part.bytes;
-				console.log(part.marker.name+" ("+part.marker.byteMarker+") bytelength: "+bytes.length);
+		var worker = new Worker(WORKER_PATH_BUILD_JPEG_FILE_BUFFER);
+		worker.onmessage = function(message) {
+			var jpegByteArray = message.data;
+			console.log("compiled Jpeg to array of "+jpegByteArray.length+" bytes");
+		};
 
+		function shouldBeIncluded(part) {
+			return part.includeWhenSaved;
+		}
+
+		var parts = this.parts.filter(shouldBeIncluded).map(function(part) {
+			//filter out parts that should not be included, and pack part as an object ready for passing to workers
+			//(workers only accept objects without attached functions)
+			var self = {marker: part.marker};
+			if (part.hasOwnProperty("info")) {
+				//exif/comment info have onChange-handlers etc, so we compile them to raw bytes here instead of in the worker.
+				self.bytes = part.info.compileToBytes();
 			}
+			return self;
 		});
+
+		worker.postMessage({parts: parts, buffer: this.buffer});
 	}.bind(this);
 };
 var JpegElement = React.createClass({
