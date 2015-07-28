@@ -98,8 +98,6 @@ var JpegExif = React.createClass({
 });
 
 var JpegPartElement = React.createClass({
-	//this element has an issue. checkboxes do not update to reflect the active JPEG when you change tabs,
-	//in fact it doesnt properly reflect anything.
 	onChange: function(event) {
 		this.props.part.onChange(event);
 		this.forceUpdate();
@@ -120,7 +118,7 @@ var Jpeg = function(buffer) {
 
 	var Part = function(marker) {
 		this.marker = marker;
-		this.includeWhenSaved = false;
+		this.includeWhenSaved = true;
 
 		var self = this;
 		var element = null;
@@ -161,6 +159,8 @@ var Jpeg = function(buffer) {
 		var bytes = null;
 
 		switch (marker.byteMarker) {
+			//parse jpeg-segment. define getter for raw bytes of the part, and build raw bytes from edited comments, exif-tags, etc.
+			//also set part.element, for rendering. part.element has a setter-function, wrapping the element in a <JpegPartElement />
 			case 0xFFFE: //Comment
 				part.comment = new function() {
 					this.value = readJpegComment(marker.offset, buffer);
@@ -192,13 +192,44 @@ var Jpeg = function(buffer) {
 				}
 				break;
 			default:
-				if (marker.byteMarker > 0xFFBF && marker.byteMarker < 0xFFFE) {
+				if (
+					(marker.byteMarker > 0xFFBF && marker.byteMarker < 0xFFD8) ||
+					//includes restart-markers not in the dictionary, 0xFFD0-0xFFD7
+					(marker.byteMarker > 0xFFD9 && marker.byteMarker < 0xFFE1)
+				) {
 					part.bytesGetter = function() {
 						return readJpegGenericSegment(marker.offset, buffer);
 					};
 				}
+				else if (marker.byteMarker === 0xFFD8) {
+					part.bytesGetter = function() {
+						return [0xFF, 0xD8];
+					};
+				}
+				else if (marker.byteMarker === 0xFFD9) {
+					part.bytesGetter = function() {
+						return [0xFF, 0xD9];
+					};
+				}
+				else if (marker.name === "iptc") {
+					part.bytesGetter = function() {
+						function getIPTCLength(offset, buffer) {
+							var array = new Uint8Array(buffer);
+							var view = new DataView(buffer);
+							var nameHeaderLength = array[offset+7];
+							if (nameHeaderLength & 2 !== 0) nameHeaderLength += 1;
+							if (nameHeaderLength === 0) nameHeaderLength = 4;
+							return view.getUint16(offset + 6 + nameHeaderLength);							
+						}
+						var length = getIPTCLength(marker.offset, buffer);
+						return Array.prototype.slice.call(new Uint8Array, buffer, marker.offset, marker.offset+length);
+					};
+				}
 				else {
-					console.log("Unhandled marker for bytes:"+marker.byteMarker.toString(16)+" ("+marker.name+")");
+					//skip unknown segments (app14, app2, ...)
+					part.bytesGetter = function() {
+						return [];
+					};
 				}
 				part.element = <p>{marker.name} (0x{marker.byteMarker.toString(16)}) at offset: {marker.offset}</p>
 				break;
@@ -209,7 +240,9 @@ var Jpeg = function(buffer) {
 		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
 		this.parts.forEach(function(part) {
 			if (part.includeWhenSaved) {
-				console.log(part.marker.byteMarker, part.bytes);
+				var bytes = part.bytes;
+				console.log(part.marker.name+" ("+part.marker.byteMarker+") bytelength: "+bytes.length);
+
 			}
 		});
 	}.bind(this);
