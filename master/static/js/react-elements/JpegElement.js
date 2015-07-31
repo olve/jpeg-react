@@ -154,8 +154,9 @@ var Jpeg = function(buffer) {
 						this.value = event.target.value;
 					}.bind(this);
 					this.compileToBytes = function() {
-						var _bytes = [];
-						for (var i = 0, len = this.value.length; i < len; i++) {
+						var len = this.value.length;
+						var _bytes = [0xFF, 0xFE, (len)>>8, (len)&255];
+						for (var i = 0; i < len; i++) {
 							_bytes.push(this.value.charCodeAt(i));
 						}
 						return _bytes;
@@ -188,7 +189,10 @@ var Jpeg = function(buffer) {
 		var worker = new Worker(WORKER_PATH_BUILD_JPEG_FILE_BUFFER);
 		worker.onmessage = function(message) {
 			var jpegByteArray = message.data;
-			console.log("compiled Jpeg to array of "+jpegByteArray.length+" bytes");
+			var buffer = new ArrayBuffer(jpegByteArray.length);
+			new Uint8Array(buffer).set(jpegByteArray);
+			var blob = new Blob([buffer], {type: "image/jpeg"});
+			saveAs(blob, "test.jpg");
 		};
 
 		function shouldBeIncluded(part) {
