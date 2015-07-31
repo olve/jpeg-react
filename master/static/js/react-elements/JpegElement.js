@@ -155,7 +155,7 @@ var Jpeg = function(buffer) {
 					}.bind(this);
 					this.compileToBytes = function() {
 						var len = this.value.length;
-						var _bytes = [0xFF, 0xFE, (len)>>8, (len)&255];
+						var _bytes = [0xFF, 0xFE, (len+2)>>8, (len+2)&255];
 						for (var i = 0; i < len; i++) {
 							_bytes.push(this.value.charCodeAt(i));
 						}
@@ -179,6 +179,9 @@ var Jpeg = function(buffer) {
 				}
 				break;
 			default:
+				/*	bytes for generic JPEG segments will be compiled in a worker when the JPEG is built, because 
+					if we were to compile 2 dozen segment's in the main thread, the extra overhead might cause 
+					significant latency, and the app would no longer feel fast and snappy. */
 				part.element = <p>{marker.name} (0x{marker.byteMarker.toString(16)}) at offset: {marker.offset}</p>
 				break;
 		}

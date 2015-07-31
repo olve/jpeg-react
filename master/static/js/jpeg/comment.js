@@ -8,7 +8,7 @@ function readJpegComment(offset, buffer) {
  	var view = new DataView(buffer);
  	var array = new Uint8Array(buffer);
 
- 	var length = view.getUint16(offset+2);
+ 	var length = view.getUint16(offset+2) + 2; //the length-indicator itself is included in the length.
 
  	var comment = "";
  	for (var i = offset+4, stop = offset+length; i < stop; i++) {
