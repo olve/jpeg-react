@@ -59,8 +59,10 @@ var JpegExif = React.createClass({
 
 		function buildTagList(ifd, dictionary) {
 			var tags = ifd.tagList.map(function(tag) {
+				tag.hasBeenChanged = false;
 				tag.onChangeHandler = function(event) {
 					this.value = [event.target.value];
+					this.hasBeenChanged = true;
 				}.bind(tag);
 				return <JpegExifTag tag={tag} key={tag.id} dictionary={dictionary} />;
 			});
@@ -169,8 +171,9 @@ var Jpeg = function(buffer) {
 				if (id === "Exif") {
 					part.info = readJpegExif(marker.offset, buffer);
 					part.info.compileToBytes = function() {
-						return [];
-					};
+						var _bytes = compileExifToBytes(this.info);
+						return _bytes;
+					}.bind(part);
 					part.element = <JpegExif exif={part.info} />;
 				}
 				else {
@@ -198,11 +201,7 @@ var Jpeg = function(buffer) {
 			saveAs(blob, "test.jpg");
 		};
 
-		function shouldBeIncluded(part) {
-			return part.includeWhenSaved;
-		}
-
-		var parts = this.parts.filter(shouldBeIncluded).map(function(part) {
+		var parts = this.parts.filter(function(_part){return _part.includeWhenSaved;}).map(function(part) {
 			//filter out parts that should not be included, and pack part as an object ready for passing to workers
 			//(workers only accept objects without attached functions)
 			var self = {marker: part.marker};
