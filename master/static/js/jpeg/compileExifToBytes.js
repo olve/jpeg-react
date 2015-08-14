@@ -62,6 +62,7 @@ function compileExifToBytes(exifData) {
 	var bytes = new Struct();
 	
 	//headers
+	//Size includes total size of thumbnails embedded in the exif segment.
 	var app1 = bytes.push("H", 0xFFE1); //jpeg app1-marker
 	var size = bytes.push("B", [0,0]); //length of segment (Does not include the app1-marker short, but does include size-indicator)
 	var exif = bytes.push("B", [0x45, 0x78, 0x69, 0x66, 0, 0]); //EXIF ascii, and 2 nullbytes
@@ -74,6 +75,10 @@ function compileExifToBytes(exifData) {
 
 	var ifd0 = new CompiledIFD(exifData.ifd0, bytes.byteLength, tiff.offset);
 	bytes.push("B", ifd0.bytes);
+
+	if (exifData.hasOwnProperty("thumbnailData")) {
+		bytes.push("B", exifData.thumbnailData);
+	}
 
 	size.set("H", 0, bytes.byteLength - size.offset);
 

@@ -140,7 +140,11 @@ var Jpeg = function(buffer) {
 		}.bind(this);
 	};
 
-	this.parts = this.markers.map(function(marker) {
+	var _markers = this.markers;
+
+	this.parts = this.markers.map(function(marker, index) {
+
+		if (marker === null) return null;
 
 		var part = new Part(marker);
 		var bytes = null;
@@ -175,6 +179,24 @@ var Jpeg = function(buffer) {
 						return _bytes;
 					}.bind(part);
 					part.element = <JpegExif exif={part.info} />;
+
+					var _next = _markers[index+1];
+					if (_next && _next.byteMarker === 0xFFD8) {
+						//The next marker is the SOI marker for a thumbnail embedded in the EXIF segment.
+						//Instead of making extra parts for the thumbnail, we include it in the EXIF part.
+						var _thumbMarkers = [];
+						for (var i = index+1, len = _markers.length; i < len; i++) {
+							var _thumbMarker = _markers[i];
+							_markers[i] = null;
+							_thumbMarkers.push(_thumbMarker);
+							if (_thumbMarker.byteMarker === 0xFFD9) {
+								break;
+							}
+						}
+						var start = _thumbMarkers[0].offset;
+						var stop = _thumbMarkers[_thumbMarkers.length-1].offset + 2;
+						part.info.thumbnailData = Array.prototype.slice.call(new Uint8Array(buffer), start, stop);
+					}
 				}
 				else {
 					//usually Adobe data (xml); check id and render accordingly.
@@ -189,6 +211,9 @@ var Jpeg = function(buffer) {
 				break;
 		}
 		return part;
+	}).filter(function(part) {
+		if (part === null) return false;
+		return true;
 	});
 	this.save = function() {
 		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
@@ -200,7 +225,6 @@ var Jpeg = function(buffer) {
 			var blob = new Blob([buffer], {type: "image/jpeg"});
 			saveAs(blob, "test.jpg");
 		};
-
 		var parts = this.parts.filter(function(_part){return _part.includeWhenSaved;}).map(function(part) {
 			//filter out parts that should not be included, and pack part as an object ready for passing to workers
 			//(workers only accept objects without attached functions)
@@ -211,7 +235,6 @@ var Jpeg = function(buffer) {
 			}
 			return self;
 		});
-
 		worker.postMessage({parts: parts, buffer: this.buffer});
 	}.bind(this);
 };

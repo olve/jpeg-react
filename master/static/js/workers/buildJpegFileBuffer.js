@@ -7,7 +7,6 @@ self.onmessage = function(message) {
 		this.parts = message.data.parts;
 	};
 	var partArrays = jpeg.parts.map(function(part, index) {
-		console.log(part.marker.name);
 		if (part.hasOwnProperty("bytes")) {
 			return part.bytes;
 		}
