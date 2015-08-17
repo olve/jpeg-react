@@ -22,7 +22,7 @@ File.prototype.onWorkerMessage = function(message) {
 File.prototype.parse = function() {
 	switch (this.data.type) {
 		case "image/jpeg":
-			this.info = new Jpeg(this.buffer);
+			this.info = new Jpeg(this.buffer, this.data.name);
 			this.element = <JpegElement jpeg={this.info} />;
 			break;
 		case "image/png":

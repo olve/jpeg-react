@@ -116,8 +116,9 @@ var JpegPartElement = React.createClass({
 	},
 });
 
-var Jpeg = function(buffer) {
+var Jpeg = function(buffer, fileName) {
 	this.buffer = buffer;
+	this.fileName = fileName;
 	this.markers = readJpegMarkersList(this.buffer);
 
 	var Part = function(marker) {
@@ -190,16 +191,17 @@ var Jpeg = function(buffer) {
 							_markers[i] = null;
 							_thumbMarkers.push(_thumbMarker);
 							if (_thumbMarker.byteMarker === 0xFFD9) {
+								//EOI, end of image; end of thumb data.
 								break;
 							}
 						}
-						var start = _thumbMarkers[0].offset;
-						var stop = _thumbMarkers[_thumbMarkers.length-1].offset + 2;
-						part.info.thumbnailData = Array.prototype.slice.call(new Uint8Array(buffer), start, stop);
+						var startOfThumbData = _thumbMarkers[0].offset;
+						var endOfThumbData = _thumbMarkers[_thumbMarkers.length-1].offset + 2; //+2 to include the EOI-marker 0xFFD9
+						part.info.thumbnailData = Array.prototype.slice.call(new Uint8Array(buffer), startOfThumbData, endOfThumbData);
 					}
 				}
 				else {
-					//usually Adobe data (xml); check id and render accordingly.
+					//usually Adobe data (xml); check if id === "<...adobe/...>" and render accordingly.
 					part.element = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
 				}
 				break;
@@ -223,7 +225,7 @@ var Jpeg = function(buffer) {
 			var buffer = new ArrayBuffer(jpegByteArray.length);
 			new Uint8Array(buffer).set(jpegByteArray);
 			var blob = new Blob([buffer], {type: "image/jpeg"});
-			saveAs(blob, "test.jpg");
+			saveAs(blob, "changed_"+fileName);
 		};
 		var parts = this.parts.filter(function(_part){return _part.includeWhenSaved;}).map(function(part) {
 			//filter out parts that should not be included, and pack part as an object ready for passing to workers

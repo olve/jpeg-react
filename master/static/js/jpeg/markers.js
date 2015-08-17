@@ -3,7 +3,7 @@
     var JPEG_MARKERS (jpeg file markers)
 
   Links:
-        Windows Patented padding (marker 0xEA1C): http://www.freepatentsonline.com/7421451.html
+        Microsoft Patented padding (marker 0xEA1C): http://www.freepatentsonline.com/7421451.html
         Common JPEG markers: http://en.wikipedia.org/wiki/JPEG#Syntax_and_structure
         stackoverflow demo (strip orientation): http://stackoverflow.com/questions/27638402/strip-exif-data-from-image
         canvas-method strip all exif: http://removephotodata.com/
