@@ -1,86 +1,101 @@
-function compileTagValue(tag) {
+function getTagTypeInfo(type) {
+	//get data-type information for an exif tag-type from the Struct lib
+	switch(type) {
+		case 2:
+			return Struct.prototype.TYPES.c;
+		case 3:
+			return Struct.prototype.TYPES.H;
+		case 4:
+		case 5:
+			return Struct.prototype.TYPES.L;
+		case 6:
+			return Struct.prototype.TYPES.b;
+		case 8:
+			return Struct.prototype.TYPES.h;
+		case 9:
+		case 10:
+			return Struct.prototype.TYPES.l;
+		case 11:
+			return Struct.prototype.TYPES.f;
+		case 12:
+			return Struct.prototype.TYPES.d;
+		case 1:
+		case 7:
+		default:
+			return Struct.prototype.TYPES.B;
+	}
+}
+
+function compileTagValue(tag, formatCharacter) {
 	if (!tag.hasBeenChanged && !tag.littleEndian && tag.hasOwnProperty("bytes")) {
 		return tag.bytes;
 	}
-	var type = function getTagTypeInfo(type) {
-		switch(type) {
-			case 2:
-				return Struct.prototype.TYPES.c;
-			case 3:
-				return Struct.prototype.TYPES.H;
-			case 4:
-			case 5:
-				return Struct.prototype.TYPES.L;
-			case 6:
-				return Struct.prototype.TYPES.b;
-			case 8:
-				return Struct.prototype.TYPES.h;
-			case 9:
-			case 10:
-				return Struct.prototype.TYPES.l;
-			case 11:
-				return Struct.prototype.TYPES.f;
-			case 12:
-				return Struct.prototype.TYPES.d;
-			case 1:
-			case 7:
-			default:
-				return Struct.prototype.TYPES.B;
-		}
-	}(tag.type);
+	var type = (tag.type);
 
-	if (!tag.hasBeenChanged) {
-		//for now, to avoid changing endianness, we recompile tag.value to an array of bytes, instead of switching the endianness
-		//of tag.bytes. it is also more consistent, because when new values are stored, we use tag.value; not tag.bytes.
+	var output = new Struct();
+	var value = tag.value;
+	var components = tag.components;
 
-		var output = new Struct();
-
+	if (tag.hasBeenChanged) {
 		if (tag.type === 2) {
-			value = [];
-			for (var i=0; i<tag.components; i++) {
-				output.push("B", tag.value[i].charCodeAt(0));
-			}
+			value = tag.value[0].split("");
 		}
 		else if (tag.type === 5 || tag.type === 10) {
-			/*	rationals are stored as two longs, numerator/denominator
-
-				we convert rationals to a fraction with Peter Olson's BigRational lib.
-				(https://github.com/peterolson/BigRational.js) */
-			for (var i=0; i<tag.components; i++) {
-				var chr = (tag.type===5) ? "L" : "l";
-				var component = tag.value[i];
-				var fraction = function toFraction(rational, epsilon) {
-					var denominator = 0;
-					var numerator;
-					var error;
-					do {
-						denominator++;
-						numerator = Math.round((rational.numerator * denominator) / rational.denominator);
-						error = Math.abs(rational.minus(numerator/denominator));
-					} while (error > epsilon);
-					return {numerator: numerator, denominator: denominator};
-				}(bigRat(component), 0.00001);
-				output.push(chr, fraction.numerator);
-				output.push(chr, fraction.denominator);
-			}
+			value = [parseFloat(tag.value[0])];
 		}
 		else {
-			for (var i=0; i<tag.components; i++) {
-				output.push(type.chr, tag.value[i]);
-			}
+			value = [parseInt(tag.value[0])];
 		}
-		return output.array;
+		components = value.length;
+	}
+
+	//for now, to avoid changing endianness, we recompile tag.value to an array of bytes, instead of switching the endianness
+	//of tag.bytes. it is also more consistent, because when new values are stored, we use tag.value; not tag.bytes.
+
+	if (tag.type === 2) {
+		//convert string to charcodes
+		for (var i=0; i<components; i++) {
+			output.push("B", value[i].charCodeAt(0));
+		}
+	}
+	else if (tag.type === 5 || tag.type === 10) {
+		/*	rationals are stored as two longs, numerator/denominator
+			we convert rationals to a fraction with Peter Olson's BigRational lib.
+			(https://github.com/peterolson/BigRational.js) */
+		for (var i=0; i<components; i++) {
+			var chr = (tag.type===5) ? "L" : "l";
+			var component = value[i];
+			var fraction = function toFraction(rational, epsilon) {
+				var denominator = 0;
+				var numerator;
+				var error;
+				do {
+					denominator++;
+					numerator = Math.round((rational.numerator * denominator) / rational.denominator);
+					error = Math.abs(rational.minus(numerator/denominator));
+				} while (error > epsilon);
+				return {numerator: numerator, denominator: denominator};
+			}(bigRat(component), 0.00001);
+			output.push(chr, fraction.numerator);
+			output.push(chr, fraction.denominator);
+		}
 	}
 	else {
-		return [];
+		//every other type of tag.
+		for (var i=0; i<components; i++) {
+			output.push(formatCharacter, value[i]);
+		}
 	}
+	return output.array;
 }
 var CompiledTag = function(tag) {
+	var typeInfo = getTagTypeInfo(tag.type);
+	var value = compileTagValue(tag, typeInfo.chr);
+
 	var struct = new Struct();
 	var id = struct.push("H", tag.id);
 	var type = struct.push("H", tag.type);
-	var components = struct.push("L", tag.components);
-	var value = compileTagValue(tag);
+	var components = struct.push("L", value.length / typeInfo.size);
 
 	this.byteLength = value.length;
 
