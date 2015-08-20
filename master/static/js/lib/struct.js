@@ -74,7 +74,7 @@ Struct.prototype.createMember = function(chr, array) {
 
 	return self;
 };
-Struct.prototype.push = function(chr, values) {
+Struct.prototype.push = function(chr, values, littleEndian) {
 	//push [values] or value to this.members
 	if (typeof values === "number") values = [values];
 	else if (typeof values === "string") {
@@ -87,7 +87,7 @@ Struct.prototype.push = function(chr, values) {
 	var array = [];
 
 	for (var i=0; i < values.length; i++) {
-		var bytes = this.intToBytes(chr, values[i]);
+		var bytes = this.intToBytes(chr, values[i], littleEndian);
 		array.push.apply(array, bytes);
 	}
 

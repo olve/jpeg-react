@@ -148,6 +148,7 @@ function readTag(id, offset, tiff, view, littleEndian) {
 
 	function slice(method, start, stop) {
 		//Applies method to view to read bytes. Returns array of bytes.
+		//for example, if method == DataView.prototype.getUint8, do view.getUint8(i) for every offset between <start,stop>
 		if (start === stop) return [method.apply(view, [start, littleEndian])];
 		var values = [];
 		for (var i = start; i < stop; i++) {
@@ -247,7 +248,7 @@ function readTag(id, offset, tiff, view, littleEndian) {
 	var pointer = tiff + view.getUint32(offset+8, littleEndian);
 
     // Tags with byteLength < 4 will be stored in the IFD0 data area, instead of following the tag.
-    //Determine the actual offset of where the value is stored
+    // We must determine the actual offset of where the value is stored:
 	if (components === 1) var valueOffset = (type === 5 || type === 10) ? pointer : (offset + 8);
 	else var valueOffset = (byteLength>4) ? pointer : (offset + 8);
 

@@ -32,7 +32,7 @@ var JpegExifTag = React.createClass({
 		}
 		return (
 			<li key={this.props.key}>
-				<span title={"Tag id: " + tag.id}>{name}</span> {input} {tag.value}
+				<span title={"Tag id: " + tag.id}>{name}</span> {input}
 			</li>
 		);
 	},
@@ -214,6 +214,7 @@ var Jpeg = function(buffer, fileName) {
 		}
 		return part;
 	}).filter(function(part) {
+		//filter out nulled parts (thumbnails embedded in exif)
 		if (part === null) return false;
 		return true;
 	});
