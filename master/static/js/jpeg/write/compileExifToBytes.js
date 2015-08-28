@@ -67,6 +67,13 @@ var CompiledIFD = function(offset, ifdData) {
 	}
 };
 CompiledIFD.prototype.compile = function() {
+	/*	for tags with values of bytelength longer than 4, we must store the values in the IFD's data-area.
+		this method pushes the values there, and sets the tag-pointers to point to the offset of the value.
+
+		it is done separately from the main exif-compilation, because one might want to add more tags before
+		calculating pointers to offset. If one added more data to the IFD after compiling, the pointers would 
+		point to the wrong offsets.
+	*/
 	var self = this;
 	this.tags.forEach(function(tag) {
 		if (tag.value.length > 4) {
@@ -102,6 +109,7 @@ CompiledExifSegment.prototype.compileIFDSegments = function() {
 
 	var ifd0 = new CompiledIFD(8, this.data.ifd0);
 
+	//the EXIF and GPS sub-IFDs are linked to by tags stored in IFD0; add the tags here, with 0 values.
 	if (this.data.hasOwnProperty("exif")) {
 		ifd0.entries.push("B", [135,105, 0,4, 0,0,0,1]);
 		links.exif = ifd0.entries.push("L", 0);
@@ -114,6 +122,7 @@ CompiledExifSegment.prototype.compileIFDSegments = function() {
 	ifd0.compile();
 	output.push(ifd0.struct);
 
+	//create sub-IFDs, and set the value of the tags linking to their offset.
 	if (links.exif !== null) {
 
 		var exif = new CompiledIFD(8+output.byteLength, this.data.exif);
@@ -146,18 +155,3 @@ CompiledExifSegment.prototype.compileIFDSegments = function() {
 
 	return output;
 };
-
-/*
-			this.tags.push("B", [160,5, 0,4, 0,0,0,1]); //0xA005
-			this.links.iop = this.tags.push("L", 0);
-			entries += 1;
-		}
-		if (ifdLinks.exif) {
-			this.tags.push("B", [135,105, 0,4, 0,0,0,1]); //0x8769
-			this.links.exif = this.tags.push("L", 0);
-			entries += 1;
-		}
-		if (ifdLinks.gps) {
-			this.tags.push("B", [136,37, 0,4, 0,0,0,1]); //0x8825
-			this.links.gps = this.tags.push("L", 0);
-*/
