@@ -31,14 +31,19 @@ var CompiledTag = function(tag) {
 	this.struct = new Struct();
 	this.id = this.struct.push("H", tag.id);
 	this.type = this.struct.push("H", tag.type);
-	this.components = this.struct.push("L", this.value.length/type.size);
+	if (tag.type === 5 || tag.type === 10) {
+		this.components = this.struct.push("L", this.value.length/8);
+	}
+	else {
+		this.components = this.struct.push("L", this.value.length/type.size);
+	}
 	if (this.value.length > 4) {
 		this.pointer = this.struct.push("L", 0);
 	}
 	else {
 		if (this.value.length < 4) {
 			do { //pad the value with 0s until it has the byteLength of a long (4).
-				this.value.unshift(0); //for little endian, pad with .push(0) instead of unshift.
+				this.value.push(0);
 			} while (this.value.length < 4)
 		}
 		this.pointer = this.struct.push("B", this.value);
@@ -67,7 +72,7 @@ var CompiledIFD = function(offset, ifdData) {
 	}
 };
 CompiledIFD.prototype.compile = function() {
-	/*	for tags with values of bytelength longer than 4, we must store the values in the IFD's data-area.
+	/*	for tags with values of bytelength greater than 4, we must store the values in the IFD's data-area.
 		this method pushes the values there, and sets the tag-pointers to point to the offset of the value.
 
 		it is done separately from the main exif-compilation, because one might want to add more tags before

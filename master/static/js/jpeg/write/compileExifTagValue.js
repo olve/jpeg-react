@@ -1,12 +1,6 @@
 function compileExifTagValue(tag, formatCharacter) {
 	/* Compiles the value of an exif tag object to an array of bytes */
 
-	/* 	does NOT compile everything correctly.
-		type 5 | 10 are not always correct
-		GPS coordinates have 6 components (they shouldnt)
-		++ other errors.
-	*/
-
 	if (!tag.hasBeenChanged && !tag.littleEndian && tag.hasOwnProperty("bytes")) {
 		return tag.bytes;
 	}

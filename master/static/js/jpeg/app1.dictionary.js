@@ -91,10 +91,6 @@ function parseJpegTagValue(tag, dictionary) {
     if (tag.type === 2) {
         value = lettersToString(tag.value);
     }
-    else if (tag.id === 0) {
-        //add dots to GPS version tag.
-        value = tag.value.slice(0, 4).join(".");
-    }
     else if (tag.id === 0x9286 || tag.id === 0x927C) {
         //Exif.Photo.UserComment and Exif MakerNote. type 7 undefined. For writing comments with any encoding.
         value = charsToString(tag.value, tag.littleEndian);
