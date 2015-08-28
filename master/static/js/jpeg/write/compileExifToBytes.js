@@ -158,5 +158,14 @@ CompiledExifSegment.prototype.compileIFDSegments = function() {
 		output.push(gps.struct);
 	}
 
+	if (this.data.hasOwnProperty("ifd1")) {
+		ifd0.next.set("L", 0, 8+output.byteLength);
+		var ifd1 = new CompiledIFD(8+output.byteLength, this.data.ifd1);
+		ifd1.compile();
+		output.push(ifd1.struct);
+
+
+	}
+
 	return output;
 };

@@ -32,7 +32,7 @@ var JpegExifTag = React.createClass({
 		}
 		return (
 			<li key={this.props.key}>
-				<span title={"Tag id: " + tag.id}>{name}</span> {input} type:{tag.type} value:{tag.value}
+				<span title={"Tag id: " + tag.id}>{name}</span> {input}
 			</li>
 		);
 	},
