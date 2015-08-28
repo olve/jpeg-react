@@ -28,7 +28,8 @@ self.onmessage = function(message) {
 				return Array.prototype.slice.call(jpeg.array, part.marker.offset, part.marker.offset+length);
 			}
 			else if (part.marker.byteMarker === 0xFFDA) {
-				//SOS header. length-indicator is header-length, not segment-length. One can get the length of the segment by decoding, but we will simply return everything until the next marker.
+				//SOS header. length-indicator is header-length, not segment-length. One can get the length of the segment by decoding it.
+				/* return everything until the next marker
 				var next = jpeg.parts[index+1];
 				if (next) {
 					return jpeg.array.slice(part.marker.offset, next.marker.offset);
@@ -36,6 +37,10 @@ self.onmessage = function(message) {
 				else {
 					return jpeg.array.slice(part.marker.offset, jpeg.array.length-1);
 				}
+				*/
+				//return everything from here till the end of the file; we're dangerously assuming that we will only find one SOS marker
+				//and that it will be the last marker of the file.
+				return jpeg.array.slice(part.marker.offset, jpeg.array.length-1);
 			}			
 			else {
 				//skip unknown segments (app14, app2, ...)

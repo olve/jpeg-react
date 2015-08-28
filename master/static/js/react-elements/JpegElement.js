@@ -116,6 +116,15 @@ var JpegPartElement = React.createClass({
 	},
 });
 
+var GenericJpegMarkerElement = React.createClass({
+	render: function() {
+		var marker = this.props.marker;
+		return (
+			<p>{marker.name} (0x{marker.byteMarker.toString(16)}) at offset: {marker.offset}</p>
+		);
+	},
+});
+
 var Jpeg = function(buffer, fileName) {
 	this.buffer = buffer;
 	this.fileName = fileName;
@@ -142,6 +151,18 @@ var Jpeg = function(buffer, fileName) {
 	};
 
 	var _markers = this.markers;
+
+	function nullEmbeddedParts(index, start, stop) {
+		//null markers within <start, stop> range; they are are part of an image embedded in another part
+		for (var i=index+1, len=_markers.length; i<len; i++) {
+			if (_markers[i].offset > start && _markers[i].offset < stop) {
+				_markers[i] = null;
+			}
+			else {
+				return;
+			}
+		}
+	}
 
 	this.parts = this.markers.map(function(marker, index) {
 
@@ -184,7 +205,7 @@ var Jpeg = function(buffer, fileName) {
 					var _next = _markers[index+1];
 					if (_next && _next.byteMarker === 0xFFD8) {
 						//The next marker is the SOI marker for a thumbnail embedded in the EXIF segment.
-						//Instead of making extra parts for the thumbnail, we include it in the EXIF part.
+						//_view.getUint16(offset+2);making extra parts for the thumbnail, we include it in the EXIF part.
 						var _thumbMarkers = [];
 						for (var i = index+1, len = _markers.length; i < len; i++) {
 							var _thumbMarker = _markers[i];
@@ -205,11 +226,22 @@ var Jpeg = function(buffer, fileName) {
 					part.element = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
 				}
 				break;
+			case 0xFFE2: //APP2
+			case 0xFFED: //APP13
+				//remove any jpeg markers found within these parts, as they are embedded images.
+				function nullMarkerWithLengthIndicator(index, marker) {
+					var view = new DataView(buffer);
+					var length = view.getUint16(marker.offset+2);
+					nullEmbeddedParts(index, marker.offset, marker.offset+length);
+				}
+				nullMarkerWithLengthIndicator(index, marker);
+				part.element = <GenericJpegMarkerElement marker={marker} />;
+				break;
 			default:
 				/*	bytes for generic JPEG segments will be compiled in a worker when the JPEG is built, because 
 					if we were to compile 2 dozen segment's in the main thread, the extra overhead might cause 
 					significant latency, and the app would no longer feel fast and snappy. */
-				part.element = <p>{marker.name} (0x{marker.byteMarker.toString(16)}) at offset: {marker.offset}</p>
+				part.element = <GenericJpegMarkerElement marker={marker} />;
 				break;
 		}
 		return part;

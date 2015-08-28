@@ -163,8 +163,6 @@ CompiledExifSegment.prototype.compileIFDSegments = function() {
 		var ifd1 = new CompiledIFD(8+output.byteLength, this.data.ifd1);
 		ifd1.compile();
 		output.push(ifd1.struct);
-
-
 	}
 
 	return output;
