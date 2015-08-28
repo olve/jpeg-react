@@ -176,8 +176,8 @@ var Jpeg = function(buffer, fileName) {
 				if (id === "Exif") {
 					part.info = readJpegExif(marker.offset, buffer);
 					part.info.compileToBytes = function() {
-						var _bytes = compileExifToBytes(this.info);
-						return _bytes;
+						var compiled = new CompiledExifSegment(this.info);
+						return compiled.struct.array;
 					}.bind(part);
 					part.element = <JpegExif exif={part.info} />;
 

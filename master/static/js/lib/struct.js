@@ -35,7 +35,6 @@ var Struct = function() {
 	})
 
 };
-
 Struct.prototype.createMember = function(chr, array) {
 
 	if (!this.TYPES.hasOwnProperty(chr)) throw("invalid type: "+chr);
@@ -46,52 +45,96 @@ Struct.prototype.createMember = function(chr, array) {
 	var buffer = new ArrayBuffer(byteLength);
 	new Uint8Array(buffer).set(array);
 
-	var self = {
+	var member = {
 		chr: chr,
 		array: array,
 		byteLength: byteLength,
 		buffer: buffer,
 	};
 
-	self.offset = this.byteLength;
-
 	var types = this.TYPES;
-	self.get = function(chr, offset) {return types[chr].get.apply(new DataView(self.buffer), [offset])};
-	self.set = function(chr, offset, value) {
-		if (arguments.length !== 3) throw("Invalid arguments for set");
-		types[chr].set.apply(new DataView(self.buffer), [offset, value]);
-		self.array = Array.prototype.slice.call(new Uint8Array(self.buffer));
+
+	/*	Define methods for reading/writing to the member.
+		segments of the member's byteArray can be read as a specific type (defined by chr), at a certain offset
+		for example:
+			member.array = [0, 0, 0xFF, 0xFF]
+			member.get("H", 0) //this applies DataView.prototype.getUint16(0) to member, and would return 0.
+			member.get("B", 2) //getUint8(2) would return 0xFF
+			member.set("B", 0, 0xFF) //would apply DataView.prototype.setUint16(0, 0xFF), and change the array to:
+			[0xFF, 0, 0xFF, 0xFF]
+			member.set("L", 0, 0) //would write a 0 Long at offset 0, (DataView.prototype.setUint32(0, 0)):
+			[0, 0, 0, 0]
+	*/
+	member.get = function(chr, offset) {return types[chr].get.apply(new DataView(member.buffer), [offset])};
+	member.set = function(chr, offset, value) {
+		types[chr].set.apply(new DataView(member.buffer), [offset, value]);
+		member.array = Array.prototype.slice.call(new Uint8Array(member.buffer));
 	};
-	Object.defineProperty(self, "string", {
+	Object.defineProperty(member, "string", {
 		get: function() {
 			var output = "";
-			for (var i = 0; i < self.array.length; i++) {
-				output+= String.fromCharCode(self.array[i]);
+			for (var i = 0; i < member.array.length; i++) {
+				output+= String.fromCharCode(member.array[i]);
 			}
 			return output;
 		},
 	});
 
-	return self;
+	return member;
 };
 Struct.prototype.push = function(chr, values, littleEndian) {
-	//push [values] or value to this.members
-	if (typeof values === "number") values = [values];
-	else if (typeof values === "string") {
-		var charcodes = [];
-		for (var i = 0; i < values.length; i++) {
-        	charcodes[i] = values.charCodeAt(i);
+	/*	push bytes to the struct as a new member.
+		valid values to push as a new member of the struct are:
+			- a string
+			- an instance of Struct
+			- an integer
+			- an array of integers (bytes)
+		returns the new member.
+	*/
+	
+	var member;
+
+	if (chr instanceof Struct) {
+		//arg0 is a Struct. We can push it to members, because structs and members use the same methods (.string, .array, .byteLength)
+		member = chr;
+	}
+	else {
+		if (typeof values === "number") values = [values];
+		else if (typeof values === "string") {
+			var charcodes = [];
+			for (var i = 0; i < values.length; i++) {
+	        	charcodes[i] = values.charCodeAt(i);
+			}
+			values = charcodes;
 		}
-		values = charcodes;
-	}
-	var array = [];
+		var array = [];
 
-	for (var i=0; i < values.length; i++) {
-		var bytes = this.intToBytes(chr, values[i], littleEndian);
-		array.push.apply(array, bytes);
+		for (var i=0; i < values.length; i++) {
+			var bytes = this.intToBytes(chr, values[i], littleEndian);
+			array.push.apply(array, bytes);
+		}
+
+		member = this.createMember(chr, array);
 	}
 
-	var member = this.createMember(chr, array);
+/*	define getter for the offset of the first byte of this member in the Struct.
+	We can't set it as the current byteLength, because structs (which can be pushed as members) have variable length, as 
+	they can have new members pushed to themselves. */
+
+	var self = this;
+	var index = this.members.length;
+	if (!member.hasOwnProperty("offset")) {
+		Object.defineProperty(member, "offset", {
+			get: function() {
+				var offset = 0;
+				for (var i = 0; i < index; i++) {
+					offset+=self.members[i].byteLength;
+				}
+				return offset;
+			},
+		});
+	}
+
 	this.members.push(member);
 	return member;
 };
@@ -117,6 +160,7 @@ Struct.prototype.intToBytes = function(chr, integer, littleEndian) {
 	return array;
 };
 Struct.prototype.TYPES = {
+	//dictionary of data types, and their properties.
 	c: { //char (string)
 		size:1,
 		chr: "c",
