@@ -28,19 +28,18 @@ self.onmessage = function(message) {
 				return Array.prototype.slice.call(jpeg.array, part.marker.offset, part.marker.offset+length);
 			}
 			else if (part.marker.byteMarker === 0xFFDA) {
-				//SOS header. length-indicator is header-length, not segment-length. One can get the length of the segment by decoding it.
-				/* return everything until the next marker
-				var next = jpeg.parts[index+1];
-				if (next) {
-					return jpeg.array.slice(part.marker.offset, next.marker.offset);
-				}
-				else {
-					return jpeg.array.slice(part.marker.offset, jpeg.array.length-1);
-				}
+				//has part.bytes, this part is ignored.
+				/*	SOS header. length-indicator is header-length, not segment-length. One can get the full length of the segment by decoding it.
+					We will make the assumption that any markers found between this SOS marker and the next EOI marker (0xFFD9) will be part of this
+					SCAN segment; and return everything inbetween.
 				*/
-				//return everything from here till the end of the file; we're dangerously assuming that we will only find one SOS marker
-				//and that it will be the last marker of the file.
-				return jpeg.array.slice(part.marker.offset, jpeg.array.length-1);
+				for (var i = index+1, len = jpeg.parts.length; i < len; i++) {
+					var stop = jpeg.array.length-1;
+					if (jpeg.parts[i].marker.byteMarker === 0xFFD9) {
+						stop = jpeg.parts[i].marker.offset;
+					}
+				}
+				return jpeg.array.slice(part.marker.offset, stop);
 			}			
 			else {
 				//skip unknown segments (app14, app2, ...)

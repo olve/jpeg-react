@@ -204,8 +204,9 @@ var Jpeg = function(buffer, fileName) {
 
 					var _next = _markers[index+1];
 					if (_next && _next.byteMarker === 0xFFD8) {
-						//The next marker is the SOI marker for a thumbnail embedded in the EXIF segment.
-						//_view.getUint16(offset+2);making extra parts for the thumbnail, we include it in the EXIF part.
+						/*	The next marker is the SOI marker for a thumbnail embedded in the EXIF segment.
+							we will cut all parts belonging to the embedded thumb from the list of markers for the JPEG itself,
+							and include them in the EXIF part instead. */
 						var _thumbMarkers = [];
 						for (var i = index+1, len = _markers.length; i < len; i++) {
 							var _thumbMarker = _markers[i];
@@ -235,6 +236,28 @@ var Jpeg = function(buffer, fileName) {
 					nullEmbeddedParts(index, marker.offset, marker.offset+length);
 				}
 				nullMarkerWithLengthIndicator(index, marker);
+				part.element = <GenericJpegMarkerElement marker={marker} />;
+				break;
+			case 0xFFDA: //SOS
+				/*	SCAN segments contain many jpeg markers, but the segment does not have a length indicator; one can only find the end
+					by decoding the segment. We will instead null everything until the next EOI marker. */
+				part.info = {
+					eoi: _markers[_markers.length-1], //default to last marker in file, in case we cant find a trailing EOI marker.
+				};
+				for (var i=index+1, len=_markers.length; i<len; i++) {
+					if (_markers[i].byteMarker === 0xFFD9) {
+						part.info.eoi = _markers[i];
+						break;
+					}
+					else {
+						_markers[i] = null;
+					}
+				}
+				part.info.compileToBytes = function() {
+					var start = this.marker.offset;
+					var stop = this.info.eoi.offset;
+					return Array.prototype.slice.call(new Uint8Array(buffer), start, stop);
+				}.bind(part);
 				part.element = <GenericJpegMarkerElement marker={marker} />;
 				break;
 			default:
