@@ -4,7 +4,6 @@ function compileExifTagValue(tag, formatCharacter) {
 	if (!tag.hasBeenChanged && !tag.littleEndian && tag.hasOwnProperty("bytes")) {
 		return tag.bytes;
 	}
-	var type = (tag.type);
 
 	var output = new Struct();
 	var value = tag.value;

@@ -306,7 +306,7 @@ var JpegElement = React.createClass({
 
 		return (
 			<div className="Jpeg-element">
-				<button onClick={jpeg.save}>Save Jpeg</button>
+				<button onClick={jpeg.save}>Save new Jpeg</button>
 				{parts}
 				<span>bytelength: {jpeg.buffer.byteLength}</span>
 			</div>

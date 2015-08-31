@@ -53,5 +53,3 @@ var FileManager = React.createClass({
 		}
 	},
 });
-
-React.render(<FileManager />, document.getElementById("file-manager-wrap"));
