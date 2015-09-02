@@ -5,6 +5,7 @@ var File = function(fileData, callback) {
 	this.data = fileData;
 	this.buffer = null;
 	this.callback = callback;
+	this.desiredFileName = this.data.name;
 
 	this.info = null;
 	this.element = <span>Loading file...</span>;
@@ -22,7 +23,7 @@ File.prototype.onWorkerMessage = function(message) {
 File.prototype.parse = function() {
 	switch (this.data.type) {
 		case "image/jpeg":
-			this.info = new Jpeg(this.buffer, this.data.name);
+			this.info = new Jpeg(this.buffer);
 			this.element = <JpegElement jpeg={this.info} />;
 			break;
 		case "image/png":

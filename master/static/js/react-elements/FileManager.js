@@ -1,3 +1,31 @@
+var FileManagerFileNameInput = React.createClass({
+	onChange: function(event) {
+		this.props.onChange(event);
+		this.forceUpdate();
+	},
+	render: function() {
+		return (
+			<input value={this.props.file.desiredFileName} placeholder="filename.jpg" className="filename-input" onChange={this.onChange} />
+		);
+	},
+});
+var FileManagerSaveButton = React.createClass({
+	click: function(event) {
+		//execute a File's info-object's save-method to save a new file. save-methods should accept a fileName.
+		if (this.props.file) {
+			if (this.props.file.hasOwnProperty("info")) {
+				if (this.props.file.info.hasOwnProperty("save")) {
+					this.props.file.info.save(this.props.file.desiredFileName);
+				}
+			}
+		}
+	},
+	render: function() {
+		return (
+			<button className="filemanager-top-panel-save-button" onClick={this.click}>Save file</button>
+		);
+	},
+});
 var FileManager = React.createClass({
 	getInitialState: function(event) {
 		return {
@@ -18,7 +46,7 @@ var FileManager = React.createClass({
 			var file = new File(fileData, function onFileUpdate() {this.forceUpdate();}.bind(this));
 			this.setState({files: this.state.files.concat([file])});
 		}
-		this.setState({active: this.state.files.length});
+		this.setState({active: this.state.files.length-1});
 	},
 	componentDidMount: function() {
 		window.addEventListener("dragenter", this.cancelEvent, false);
@@ -39,8 +67,26 @@ var FileManager = React.createClass({
 		if (this.state.files.length) {
 			var activeFile = this.state.files[this.state.active];
 			var activeFileElement = activeFile ? activeFile.element : <span>No file selected</span>;
+
+			function onChangeFileName(event) {
+				activeFile.desiredFileName = event.target.value;
+			}
+
+			var fileNameInput = null;
+			var saveButton = null;
+			if (activeFile) {
+				fileNameInput = <FileManagerFileNameInput file={activeFile} onChange={onChangeFileName} />;
+				saveButton = <FileManagerSaveButton file={activeFile} />;
+			}
+
 			return (
-				<div className="file-manager">
+				<div className="filemanager">
+
+					<div className="filemanager-top-panel">
+						{fileNameInput}
+						{saveButton}
+					</div>
+
 					<FileTabList files={this.state.files} setActive={this.setActive} active={this.state.active} />
 					{activeFileElement}
 				</div>
@@ -48,7 +94,9 @@ var FileManager = React.createClass({
 		}
 		else {
 			return (
-				<span>drop some files</span>
+				<div className="filemanager-file-drop-prompt">
+					<span>Drag & drop some JPEGs here to analyze/edit them</span>
+				</div>
 			);
 		}
 	},

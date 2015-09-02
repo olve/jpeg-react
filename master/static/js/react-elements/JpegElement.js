@@ -125,9 +125,8 @@ var GenericJpegMarkerElement = React.createClass({
 	},
 });
 
-var Jpeg = function(buffer, fileName) {
+var Jpeg = function(buffer) {
 	this.buffer = buffer;
-	this.fileName = fileName;
 	this.markers = readJpegMarkersList(this.buffer);
 
 	var Part = function(marker) {
@@ -273,7 +272,7 @@ var Jpeg = function(buffer, fileName) {
 		if (part === null) return false;
 		return true;
 	});
-	this.save = function() {
+	this.save = function(desiredFileName) {
 		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
 		var worker = new Worker(WORKER_PATH_BUILD_JPEG_FILE_BUFFER);
 		worker.onmessage = function(message) {
@@ -281,7 +280,7 @@ var Jpeg = function(buffer, fileName) {
 			var buffer = new ArrayBuffer(jpegByteArray.length);
 			new Uint8Array(buffer).set(jpegByteArray);
 			var blob = new Blob([buffer], {type: "image/jpeg"});
-			saveAs(blob, "changed_"+fileName);
+			saveAs(blob, desiredFileName);
 		};
 		var parts = this.parts.filter(function(_part){return _part.includeWhenSaved;}).map(function(part) {
 			//filter out parts that should not be included, and pack part as an object ready for passing to workers
@@ -306,7 +305,6 @@ var JpegElement = React.createClass({
 
 		return (
 			<div className="Jpeg-element">
-				<button onClick={jpeg.save}>Save new Jpeg</button>
 				{parts}
 				<span>bytelength: {jpeg.buffer.byteLength}</span>
 			</div>

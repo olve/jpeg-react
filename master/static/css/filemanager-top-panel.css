@@ -1,0 +1,28 @@
+.filemanager-top-panel {
+	background-color: #1798F2;
+	height: 20%;
+	min-height: 260px;
+	display: flex;
+	align-items: center;
+	padding-left: 15%;
+}
+.filemanager-top-panel > .filename-input {
+	display: inline-block;
+	background: 0;
+	outline: 0;
+	color: #fff;
+	border: 0;
+	border-bottom: 2px solid rgba(255, 255, 255, 0.53);
+	width: 50%;
+	font-size: 1.7rem;
+	font-weight: 100;
+	padding-bottom: 7px;
+}
+.filemanager-top-panel-save-button {
+	margin-left: 10px;
+	padding: 4px;
+	background: #fff;
+	outline: 0;
+	border: 0;
+	color: #000	;
+}
