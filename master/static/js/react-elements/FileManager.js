@@ -11,19 +11,18 @@ var FileManagerFileNameInput = React.createClass({
 });
 var FileManagerSaveButton = React.createClass({
 	click: function(event) {
-		//execute a File's info-object's save-method to save a new file. save-methods should accept a fileName.
+		this.props.file.info.save(this.props.file.desiredFileName);
+	},
+	render: function() {
 		if (this.props.file) {
-			if (this.props.file.hasOwnProperty("info")) {
+			if (this.props.file.info) {
 				if (this.props.file.info.hasOwnProperty("save")) {
-					this.props.file.info.save(this.props.file.desiredFileName);
+					return <button className="filemanager-top-panel-save-button" onClick={this.click}>Save file</button>
 				}
 			}
 		}
-	},
-	render: function() {
-		return (
-			<button className="filemanager-top-panel-save-button" onClick={this.click}>Save file</button>
-		);
+		//file.info.save(fileName) is not a method; we wont render a button.
+		return null;
 	},
 });
 var FileManager = React.createClass({

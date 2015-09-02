@@ -30,5 +30,8 @@ File.prototype.parse = function() {
 			this.info = null;
 			this.element = <span>Im a png</span>;
 			break;
+		default:
+			this.info = null;
+			this.element = <span>unknown filetype</span>;
 	}
 };
