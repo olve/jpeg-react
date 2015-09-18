@@ -44,7 +44,7 @@ var JpegComment = React.createClass({
 		return (
 			<div>
 				<h3>Comment</h3>
-				<input type="text" value={this.props.comment.value} onChange={this.onChange} /> {this.props.comment.value}
+				<input type="text" value={this.props.comment.value} onChange={this.onChange} />
 			</div>
 		);
 	},
