@@ -85,9 +85,10 @@ var FileManager = React.createClass({
 						{fileNameInput}
 						{saveButton}
 					</div>
-
-					<FileTabList files={this.state.files} setActive={this.setActive} active={this.state.active} />
-					{activeFileElement}
+					<div className="filemanager-main-panel">
+						<FileTabList files={this.state.files} setActive={this.setActive} active={this.state.active} />
+						{activeFileElement}
+					</div>
 				</div>
 			);
 		}
