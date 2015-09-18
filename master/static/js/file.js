@@ -1,6 +1,11 @@
 var WORKER_PATH_READ_FILEDATA = "static/js/workers/readFileData.js";
 
 var File = function(fileData, callback) {
+	/*
+		Constructor for a File object; responsible for reading file-data, and parsing the file according to it's filetype.
+		When a file is parsed, it's parsed data will be stored in an object as File.info.
+		Files are read by a threaded worker.
+	*/
 
 	this.data = fileData;
 	this.buffer = null;
