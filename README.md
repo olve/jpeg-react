@@ -15,13 +15,13 @@ change your desired filename at the top and press the save-button to save as a n
 
 To-do:
 ------
+0. fix handling of XP tags (editing/removing XPAuthor, XPTitle, etc does not work)
 0. add a worker for compiling EXIF segments to bytes (They are in the main-thread and add some lag).
 0. add progress-indicators (clicking the save button ONLY saves the file, which makes you wonder whether anything actually happened)
 0. make app more robust (There have been instances of the app crashing when dropping funky files)
 0. style the app, remove all development-helpers (materializecss and material-ui look like good options)
 0. make version available with precompiled JSX
 0. add help for new users.
-0. fix handling of XP tags (editing/removing XPAuthor, XPTitle, etc does not work)
 0. make file-selector (drag&drop is the only option for selecting files right now)
 0. add bulk-handling of files (We have support for multiple files and tabs; make it possible to set "Jack" as the artist of every open file)
 0. add/remove new JPEG-parts (most importantly EXIF segments, and then adding new EXIF tags.)
