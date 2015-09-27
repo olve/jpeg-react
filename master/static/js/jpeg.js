@@ -95,13 +95,10 @@ var Jpeg = function(buffer) {
 
 					var _next = _markers[index+1];
 					if (_next && _next.byteMarker === 0xFFD8) {
-						/*	The next marker is the SOI marker for a thumbnail embedded in the EXIF segment.
-							we will cut all parts belonging to the embedded thumb from the list of markers for the JPEG itself,
-							and include them in the EXIF part instead. */
+						/*	The next marker in the file is the SOI marker for a thumbnail embedded in the EXIF segment. */
 						var _thumbMarkers = [];
 						for (var i = index+1, len = _markers.length; i < len; i++) {
 							var _thumbMarker = _markers[i];
-							_markers[i] = null;
 							_thumbMarkers.push(_thumbMarker);
 							if (_thumbMarker.byteMarker === 0xFFD9) {
 								//EOI, end of image; end of thumb data.
@@ -117,6 +114,12 @@ var Jpeg = function(buffer) {
 					//usually Adobe data (xml); check if id === "<...adobe/...>" and render accordingly.
 					part.element = <p>App1 (id: {id}) at offset: {marker.offset}</p>;
 				}
+
+				/*	remove all JPEG markers that are part of the EXIF (all the markers of the embedded thumbnail for example) from the
+					total list of markers. */
+				var length = readJpegApp1Length(marker.offset, buffer);
+				nullEmbeddedParts(index, marker.offset, marker.offset+length+2);
+				
 				break;
 			case 0xFFE2: //APP2
 			case 0xFFED: //APP13
