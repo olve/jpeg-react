@@ -40,7 +40,11 @@ self.onmessage = function(message) {
 					}
 				}
 				return jpeg.array.slice(part.marker.offset, stop);
-			}			
+			}
+			else if (part.marker.byteMarker === 0xEA1C) {
+				//return readMicrosoftPadding(part.marker.offset, stop)
+				return [];
+			}		
 			else {
 				//skip unknown segments (app14, app2, ...)
 				return [];

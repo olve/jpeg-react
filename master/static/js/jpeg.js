@@ -43,6 +43,7 @@ var Jpeg = function(buffer) {
 		}
 	}
 
+	//Build array of jpeg segments.
 	this.parts = this.markers.map(function(marker, index) {
 
 		if (marker === null) return null;
@@ -53,6 +54,17 @@ var Jpeg = function(buffer) {
 		switch (marker.byteMarker) {
 			//parse jpeg-segment. define getter for raw bytes of the part, and build raw bytes from edited comments, exif-tags, etc.
 			//also set part.element, for rendering. part.element has a setter-function, wrapping the element in a <JpegPartElement />
+
+			case 0xEA1C: //Microsoft Padding
+				part.info = {
+					//padding: readMicrosoftPadding(marker.offset, buffer, _markers[index+1]),
+					padding: [],
+					compileToBytes: function() {
+						return this.padding;
+					},
+				};
+				part.element = <GenericJpegMarkerElement marker={marker} />;
+				break;
 			case 0xFFFE: //Comment
 				part.info = new function() {
 					this.value = readJpegComment(marker.offset, buffer);
@@ -81,24 +93,46 @@ var Jpeg = function(buffer) {
 					}.bind(part);
 					part.element = <JpegExif exif={part.info} />;
 
-					var _next = _markers[index+1];
-					if (_next && _next.byteMarker === 0xFFD8) {
-						/*	The next marker is the SOI marker for a thumbnail embedded in the EXIF segment.
-							we will cut all parts belonging to the embedded thumb from the list of markers for the JPEG itself,
-							and include them in the EXIF part instead. */
-						var _thumbMarkers = [];
-						for (var i = index+1, len = _markers.length; i < len; i++) {
-							var _thumbMarker = _markers[i];
-							_markers[i] = null;
-							_thumbMarkers.push(_thumbMarker);
-							if (_thumbMarker.byteMarker === 0xFFD9) {
-								//EOI, end of image; end of thumb data.
-								break;
-							}
+					/* 	We must iterate over the next parts of the JPEG, and see if any of them are part of this APP1 segment.
+						If they are, we will handle them according to their type and delete them from Jpeg.markers. 
+						Many bad things can happen if we don't. A thumbnail-image embedded in an EXIF segment could be parsed as the 
+						main image for example.
+					*/
+
+					var start = marker.offset;
+					var stop = start + readJpegApp1Length(marker.offset, buffer); 
+
+					for (var i = index+1, len = _markers.length; i < len; i++) {
+						var embeddedMarker = _markers[i];
+						if (!embeddedMarker) {
+							//markers may have been nulled before.
+							continue;
 						}
-						var startOfThumbData = _thumbMarkers[0].offset;
-						var endOfThumbData = _thumbMarkers[_thumbMarkers.length-1].offset + 2; //+2 to include the EOI-marker 0xFFD9
-						part.info.thumbnailData = Array.prototype.slice.call(new Uint8Array(buffer), startOfThumbData, endOfThumbData);
+						if (embeddedMarker.offset > stop) {
+							//this marker is outside the App1 segment.
+							break;
+						}
+						if (embeddedMarker.byteMarker === 0xFFD8 && i === index + 1) {
+							/*	The first trailing marker is the SOI marker for a thumbnail embedded in the EXIF segment.
+								we will cut all parts belonging to the embedded thumb from the list of markers for the JPEG itself,
+								and include them in the EXIF part instead. */
+							var _thumbMarkers = [];
+							for (var ___i = index+1, len = _markers.length; ___i < len; ___i++) {
+								var _thumbMarker = _markers[___i];
+								_markers[___i] = null;
+								_thumbMarkers.push(_thumbMarker);
+								if (_thumbMarker.byteMarker === 0xFFD9) {
+									//EOI, end of image; end of thumb data.
+									break;
+								}
+							}
+							var startOfThumbData = _thumbMarkers[0].offset;
+							var endOfThumbData = _thumbMarkers[_thumbMarkers.length-1].offset + 2; //+2 to include the EOI-marker 0xFFD9
+							part.info.thumbnailData = Array.prototype.slice.call(new Uint8Array(buffer), startOfThumbData, endOfThumbData);
+						}
+						if (embeddedMarker.byteMarker === 0xEA1C) {
+							_markers[i] = null;
+						}
 					}
 				}
 				else {

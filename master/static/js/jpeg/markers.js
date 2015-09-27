@@ -22,6 +22,15 @@ function readJpegMarkersList(buffer) {
                 });
             }
         }
+        else if (array[offset] === 0xEA) {
+          if (array[offset+1] === 0x1C) {
+            markers.push({
+              offset: offset,
+              name: JPEG_MARKERS[0xEA1C],
+              byteMarker: 0xEA1C,
+            });
+          }
+        }
         else if (array[offset] == 0x38) { //8
             if (
                 array[offset+1] == 0x42 && //B
@@ -90,6 +99,9 @@ function readJpegMarkers (buffer) {
 };
 
 var JPEG_MARKERS = {
+      // Microsoft patented padding (http://www.freepatentsonline.com/7421451.html)
+      0xEA1C: "MicrosoftPadding",
+
       // Start of Frame markers, non-differential, Huffman coding
       0xFFC0: "HuffBaselineDCT",
       0xFFC1: "HuffExtSequentialDCT",
