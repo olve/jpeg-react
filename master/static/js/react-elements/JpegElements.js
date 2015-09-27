@@ -49,6 +49,23 @@ var JpegComment = React.createClass({
 		);
 	},
 });
+var JpegExifTagList = React.createClass({
+	render: function() {
+		if (!this.props.tags) {
+			return null;
+		}
+		else {
+			return (
+				<div>
+					<h2>{this.props.title}</h2>
+					<ul className="jpeg-exif-taglist">
+						{this.props.tags}
+					</ul>
+				</div>
+			);
+		}
+	},
+});
 var JpegExif = React.createClass({
 	render: function() {
 		if (this.props.exif === null) return null;
@@ -74,25 +91,10 @@ var JpegExif = React.createClass({
 
 		return (
 			<div className={"jpeg-exif"}>
-				<h2>Image tags</h2>
-				<ul className="jpeg-exif-taglist">
-					{tags.image}
-				</ul>
-
-				<h2>Photo tags</h2>
-				<ul className="jpeg-exif-taglist">
-					{tags.photo}
-				</ul>
-
-				<h2>GPS tags</h2>
-				<ul className="jpeg-exif-taglist">
-					{tags.gps}
-				</ul>
-
-				<h2>Interoperability tags</h2>
-				<ul className="jpeg-exif-taglist">
-					{tags.iop}
-				</ul>
+				<JpegExifTagList title={"Image tags"} tags={tags.image} />
+				<JpegExifTagList title={"Photo tags"} tags={tags.photo} />
+				<JpegExifTagList title={"GPS tags"} tags={tags.gps} />
+				<JpegExifTagList title={"Interoperability tags"} tags={tags.iop} />
 			</div>
 		);
 	},
