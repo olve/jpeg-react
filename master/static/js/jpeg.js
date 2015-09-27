@@ -8,12 +8,6 @@ var Jpeg = function(buffer) {
 	*/
 	this.buffer = buffer;
 	this.markers = readJpegMarkersList(this.buffer);
-	this.valid = function() {
-		/* 	There are other ways to corrupt JPEGs than not beginning the file with a SOI marker, but this is a quick way to prevent crashing
-			the app in case of very erroneous files. */
-		var view = new DataView(buffer);
-		return view.getUint16(0) === 0xFFD8;
-	}();
 
 	var Part = function(marker) {
 		this.marker = marker;
