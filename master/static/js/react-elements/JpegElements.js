@@ -123,15 +123,20 @@ var JpegElement = React.createClass({
 	render: function() {
 		var jpeg = this.props.jpeg;
 
-		var parts = jpeg.parts.map(function(part) {
-			return part.element;
-		});
+		if (!jpeg.valid) {
+			return <p>This JPEG file is corrupted.</p>;
+		}
+		else {
+			var parts = jpeg.parts.map(function(part) {
+				return part.element;
+			});
 
-		return (
-			<div className="Jpeg-element">
-				{parts}
-				<span>bytelength: {jpeg.buffer.byteLength}</span>
-			</div>
-		);
+			return (
+				<div className="Jpeg-element">
+					{parts}
+					<span>bytelength: {jpeg.buffer.byteLength}</span>
+				</div>
+			);
+		}
 	},
 });
