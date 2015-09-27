@@ -16,6 +16,7 @@ change your desired filename at the top and press the save-button to save as a n
 To-do:
 ------
 0. fix handling of XP tags (editing XPAuthor, XPTitle, etc does not work)
+0. fix handling of Microsoft Padding
 0. add a worker for compiling EXIF segments to bytes (They are in the main-thread and add some lag).
 0. add progress-indicators (clicking the save button ONLY saves the file, which makes you wonder whether anything actually happened)
 0. make app more robust (There have been instances of the app crashing when dropping funky files)
