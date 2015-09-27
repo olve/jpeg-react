@@ -26,6 +26,6 @@ To-do:
 0. make file-selector (drag&drop is the only option for selecting files right now)
 0. add bulk-handling of files (We have support for multiple files and tabs; make it possible to set "Jack" as the artist of every open file)
 0. add/remove new JPEG-parts (most importantly EXIF segments, and then adding new EXIF tags.)
-0. decode image-data and save as different formats
+0. decode image-data and save as different container format
 0. add support for mp3s (they use EXIF)
-0. add support for other file-types; the app is structured with file.js in a way that makes this relatively easily (try dropping a .png file)
+0. add support for other file-types; the app is structured with file.js in a way that makes this relatively easy (try dropping a .png file)
