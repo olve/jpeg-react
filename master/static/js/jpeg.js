@@ -164,7 +164,14 @@ var Jpeg = function(buffer) {
 		if (part === null) return false;
 		return true;
 	});
-	this.save = function(desiredFileName) {
+	this.clean = function() {
+		//set all metadata-segments to includeWhenSaved = false;
+		this.parts.forEach(function(part) {
+			if (part.marker.byteMarker)
+			part.includeWhenSaved = false;
+		});
+	};
+	this.save = function(desiredFileName, finishedSavingCallback) {
 		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
 		var worker = new Worker(WORKER_PATH_BUILD_JPEG_FILE_BUFFER);
 		worker.onmessage = function(message) {
@@ -173,6 +180,7 @@ var Jpeg = function(buffer) {
 			new Uint8Array(buffer).set(jpegByteArray);
 			var blob = new Blob([buffer], {type: "image/jpeg"});
 			saveAs(blob, desiredFileName);
+			finishedSavingCallback();
 		};
 		var parts = this.parts.filter(function(_part){return _part.includeWhenSaved;}).map(function(part) {
 			//filter out parts that should not be included, and pack part as an object ready for passing to workers

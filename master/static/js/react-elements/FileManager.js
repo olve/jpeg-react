@@ -10,14 +10,23 @@ var FileManagerFileNameInput = React.createClass({
 	},
 });
 var FileManagerSaveButton = React.createClass({
+	finishedSavingCallback: function() {
+		React.findDOMNode(this.refs.saveButtonStatus).textContent = "";
+	},
 	click: function(event) {
-		this.props.file.info.save(this.props.file.desiredFileName);
+		React.findDOMNode(this.refs.saveButtonStatus).textContent = "building file...";
+		this.props.file.info.save(this.props.file.desiredFileName, this.finishedSavingCallback);
 	},
 	render: function() {
 		if (this.props.file) {
 			if (this.props.file.info) {
 				if (this.props.file.info.hasOwnProperty("save")) {
-					return <button className="filemanager-top-panel-save-button" onClick={this.click}>Save file</button>
+					return (
+						<div>
+							<button className="filemanager-top-panel-save-button" onClick={this.click}>Save file</button>
+							<span className="filemanager-save-button-statustext" ref="saveButtonStatus"></span>
+						</div>
+					);
 				}
 			}
 		}

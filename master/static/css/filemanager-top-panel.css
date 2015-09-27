@@ -26,3 +26,7 @@
 	border: 0;
 	color: #000	;
 }
+.filemanager-save-button-statustext {
+	margin-left: 1rem;
+	color: #fff;
+}
