@@ -23,6 +23,8 @@ To-do:
 0. style the app, remove all development-helpers (materializecss and material-ui look like good options)
 0. make version available with precompiled JSX
 0. add help for new users.
+0. fix JPEG encoding (converting BMP to JPEG adds artifact stripes)
+0. make BMP save-button use FileManager's save button.
 0. make file-selector (drag&drop is the only option for selecting files right now)
 0. add bulk-handling of files (We have support for multiple files and tabs; make it possible to set "Jack" as the artist of every open file)
 0. add/remove new JPEG-parts (most importantly EXIF segments, and then adding new EXIF tags.)
