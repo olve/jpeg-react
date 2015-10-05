@@ -104,7 +104,7 @@ var FileManager = React.createClass({
 		else {
 			return (
 				<div className="filemanager-file-drop-prompt">
-					<span>Drag & drop some JPEGs here to analyze/edit them</span>
+					<span>Drag & drop some JPEG or BMP files here to analyze/edit them</span>
 				</div>
 			);
 		}

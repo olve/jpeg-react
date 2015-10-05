@@ -35,6 +35,10 @@ File.prototype.parse = function() {
 			this.info = null;
 			this.element = <span>Im a png</span>;
 			break;
+		case "image/bmp":
+			this.info = new BMP(this.buffer, this.callback, this.desiredFileName);
+			this.element = <BMPElement bmp={this.info} />;
+			break;
 		default:
 			this.info = null;
 			this.element = <span>unknown filetype</span>;
