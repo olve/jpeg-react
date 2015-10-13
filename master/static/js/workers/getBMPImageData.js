@@ -14,6 +14,9 @@ self.onmessage = function(message) {
 	var bmpdata = new Uint8Array(buffer, fileHeader.imageDataOffset);
 	var	stride = Math.floor((dibHeader.bitsPerPixel*dibHeader.width + 31) / 32) * 4;
 
+	//only valid for 24 bit BMPs.
+	//all the canvas imagedata stuff is probably not required; we cant get it from the buffer.
+
 	for (var y = 0; y < dibHeader.height; ++y) { 
 		for (var x = 0; x < dibHeader.width; ++x) { 
 			var index1 = (x+dibHeader.width*(dibHeader.height-y))*4; 
