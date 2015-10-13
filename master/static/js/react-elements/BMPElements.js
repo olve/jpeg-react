@@ -64,7 +64,7 @@ var BMPElement = React.createClass({
 	},
 	render: function() {
 		var bmp = this.props.bmp;
-		var saveAsJpeg = bmp.imageData === null ? null : <button onClick={this.saveAsJpeg}>convert to JPEG &amp; download</button>;
+		var saveAsJpeg = bmp.imageData === null ? null : <span><button onClick={this.saveAsJpeg}>convert to JPEG &amp; download</button> (Only works with 24bit BMPs so far)</span>;
 		return (
 			<div>
 				{saveAsJpeg}
