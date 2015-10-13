@@ -15,7 +15,7 @@ change your desired filename at the top and press the save-button to save as a n
 
 To-do:
 ------
-0. fix handling of XP tags (editing XPAuthor, XPTitle, etc does not work)
+0. fix handling of XP tags (editing XPAuthor, XPTitle, etc does not work because microsoft overwrites the TIFF with what's read from XML metadata)
 0. handling of XML metadata
 0. add a worker for compiling EXIF segments to bytes (They are in the main-thread and add some lag).
 0. add progress-indicators (clicking the save button ONLY saves the file, which makes you wonder whether anything actually happened)
