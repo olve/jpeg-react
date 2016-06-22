@@ -39,6 +39,7 @@ var FileManager = React.createClass({
 		return {
 			files: [],
 			active: 0,
+
 		};
 	},
 	cancelEvent: function(event) {
@@ -71,6 +72,14 @@ var FileManager = React.createClass({
 	setActive: function(index) {
 		return this.setState({active: index});
 	},
+	bulkClean: function() {
+		this.state.files.forEach(function(file) {
+			if (file.info !== null && typeof file.info.clean === "function" && file.buffer) {
+				file.info.clean();
+				file.info.save("clean_"+file.data.name);
+			}
+		})
+	},
 	render: function() {
 		if (this.state.files.length) {
 			var activeFile = this.state.files[this.state.active];
@@ -85,6 +94,7 @@ var FileManager = React.createClass({
 			if (activeFile) {
 				fileNameInput = <FileManagerFileNameInput file={activeFile} onChange={onChangeFileName} />;
 				saveButton = <FileManagerSaveButton file={activeFile} />;
+				bulkCleanButton = <button onClick={this.bulkClean}>Bulk clean</button>
 			}
 
 			return (
@@ -93,6 +103,7 @@ var FileManager = React.createClass({
 					<div className="filemanager-top-panel">
 						{fileNameInput}
 						{saveButton}
+						{bulkCleanButton}
 					</div>
 					<div className="filemanager-main-panel">
 						<FileTabList files={this.state.files} setActive={this.setActive} active={this.state.active} />

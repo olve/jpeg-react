@@ -119,7 +119,7 @@ var Jpeg = function(buffer) {
 					total list of markers. */
 				var length = readJpegApp1Length(marker.offset, buffer);
 				nullEmbeddedParts(index, marker.offset, marker.offset+length+2);
-				
+
 				break;
 			case 0xFFE2: //APP2
 			case 0xFFED: //APP13
@@ -155,8 +155,8 @@ var Jpeg = function(buffer) {
 				part.element = <GenericJpegMarkerElement marker={marker} />;
 				break;
 			default:
-				/*	bytes for generic JPEG segments will be compiled in a worker when the JPEG is built, because 
-					if we were to compile 2 dozen segment's in the main thread, the extra overhead might cause 
+				/*	bytes for generic JPEG segments will be compiled in a worker when the JPEG is built, because
+					if we were to compile 2 dozen segment's in the main thread, the extra overhead might cause
 					significant latency, and the app would no longer feel fast and snappy. */
 				part.element = <GenericJpegMarkerElement marker={marker} />;
 				break;
@@ -167,13 +167,6 @@ var Jpeg = function(buffer) {
 		if (part === null) return false;
 		return true;
 	});
-	this.clean = function() {
-		//set all metadata-segments to includeWhenSaved = false;
-		this.parts.forEach(function(part) {
-			if (part.marker.byteMarker)
-			part.includeWhenSaved = false;
-		});
-	};
 	this.save = function(desiredFileName, finishedSavingCallback) {
 		//adding prototypes to Jpeg does not work as expected, and we must .bind(this); why?
 		var worker = new Worker(WORKER_PATH_BUILD_JPEG_FILE_BUFFER);
@@ -183,7 +176,7 @@ var Jpeg = function(buffer) {
 			new Uint8Array(buffer).set(jpegByteArray);
 			var blob = new Blob([buffer], {type: "image/jpeg"});
 			saveAs(blob, desiredFileName);
-			finishedSavingCallback();
+			if (typeof finishedSavingCallback === "function") finishedSavingCallback();
 		};
 		var parts = this.parts.filter(function(_part){return _part.includeWhenSaved;}).map(function(part) {
 			//filter out parts that should not be included, and pack part as an object ready for passing to workers
@@ -196,5 +189,13 @@ var Jpeg = function(buffer) {
 			return self;
 		});
 		worker.postMessage({parts: parts, buffer: this.buffer});
+	}.bind(this);
+	this.clean = function(fileName) {
+		//set all metadata-segments to includeWhenSaved = false;
+		this.parts.forEach(function(part) {
+			if (part.marker.byteMarker > 0xFFDF || part.marker.byteMarker < 0xFFC0) {
+				part.includeWhenSaved = false;
+			}
+		});
 	}.bind(this);
 };
