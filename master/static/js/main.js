@@ -1,1 +1,0 @@
-React.render(<FileManager />, document.getElementById("filemanager-wrap"));
