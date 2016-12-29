@@ -1,28 +1,39 @@
 import React from 'react'
 import autobind from 'autobind-decorator'
-import EventEmitter from 'event-emitter'
+
+import FileSelector from './FileSelector'
+import FileTable from './FileTable'
 
 @autobind
 export default class App extends React.Component {
 
-  constructor(props) {
-    super()
-    this.ee = new EventEmitter()
+  state = {
+    files: []
   }
 
   static childContextTypes = {
-    ee: React.PropTypes.object,
+    files: React.PropTypes.array,
+    addFiles: React.PropTypes.func,
   }
   getChildContext() {
     return {
-      ee: this.ee,
+      files: this.state.files,
+      addFiles: this.addFiles
     }
+  }
+
+  addFiles(files) {
+    this.setState({
+      files: [...this.state.files, ...files]
+    })
   }
 
   render() {
     return (
       <div>
         <p>Hello World</p>
+        <FileSelector />
+        <FileTable />
       </div>
     )
   }
