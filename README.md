@@ -3,7 +3,7 @@ jpeg-react
 A fully client-side webapp for analyzing/editing JPEG files.
 (particularly handy for removing/editing EXIF metadata)
 
-Demo at: http://nana.io/jpeg
+Demo at: http://olve.io/jpeg
 
 Usage
 ------
