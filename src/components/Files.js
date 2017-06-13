@@ -2,11 +2,15 @@
 /*eslint no-undef: "error"*/
 
 import React from 'react'
+import uuid4 from 'uuid/v4'
+import { MuiThemeProvider} from 'material-ui'
+
+import File from './File'
 
 export default class Files extends React.Component {
 
   state = {
-    files: []
+    files: [],
   }
 
   componentDidMount() {
@@ -29,8 +33,12 @@ export default class Files extends React.Component {
     return event
   }
 
-  addFiles(files) {
-    console.log(files)
+  addFiles(newFiles) {
+    const files = newFiles.map(file => {
+      file.uuid = uuid4() //<File /> elements need static key={}, otherwise their constructor will call whenever this.state.files changes
+      return file
+    })
+    this.setState({files: [ ...this.state.files, ...files ] })
   }
 
   onDrop(event) {
@@ -43,25 +51,34 @@ export default class Files extends React.Component {
 
   onFileSelect(event) {
     this.addFiles(Array.from(event.target.files))
+    event.target.value = null
   }
 
-  /*
-    if (!event.dataTransfer.files.length) return; //user dropped something other than files, stop handling event
-    event = this.cancelEvent(event);
-    event.dataTransfer.dropEffect = "copy";
-    for (var i = 0, fileData; fileData = event.dataTransfer.files[i]; i++) {
-      var file = new File(fileData, function onFileUpdate() {this.forceUpdate();}.bind(this));
-      this.setState({files: this.state.files.concat([file])});
-    }
-    this.setState({active: this.state.files.length-1});
-*/
+  removeFile(index) {
+    const files = [ ...this.state.files ]
+    files.splice(index, 1)
+    this.setState({files})
+  }
 
   render() {
     return (
-      <div>
-        drop files.
-        <input type="file" onChange={this.onFileSelect.bind(this)}/>
-      </div>
+      <MuiThemeProvider>
+
+        <div>
+          drop files.
+          <input type="file" onChange={this.onFileSelect.bind(this)} multiple={true} />
+
+          <div>
+            {
+              this.state.files.map((file, index) => <File
+                key={`file-${file.uuid}`}
+                file={file}
+                remove={ this.removeFile.bind(this, index) } />)
+            }
+          </div>
+        </div>
+
+      </MuiThemeProvider>
     )
   }
 }
