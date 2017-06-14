@@ -1,0 +1,40 @@
+.files-wrap {
+  height: 100%;
+}
+.file {
+  position: relative;
+  margin: 20px;
+  padding: 25px;
+}
+.file-header > div,
+.file-header > div > span {
+  padding-right: 0px !important;
+  width: 100%;
+}
+.file-header .wrap {
+  display: flex;
+  justify-content: space-between;
+}
+.file .file-header span {
+  color: #000 !important;
+}
+.file .file-header.loading span {
+  color: #ddd !important;
+}
+.file .progress {
+  border-radius: 2px !important;
+}
+
+.file .closebutton {
+  display: inline-block;
+  width: 30px !important;
+  cursor: pointer;
+  align-self: flex-end;
+}
+.file .closebutton svg {
+  fill: #bdbdbd !important;
+  transition: fill 120ms ease-in-out;
+}
+.file .closebutton:hover svg {
+  fill: #000 !important;
+}

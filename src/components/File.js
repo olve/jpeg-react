@@ -1,5 +1,11 @@
 import React from 'react'
 
+import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card'
+import LinearProgress from 'material-ui/LinearProgress'
+import SvgIcon from 'material-ui/SvgIcon'
+
+import CloseIcon from 'material-ui/svg-icons/navigation/close'
+
 import readFileChunks from '../lib/readFileChunks.worker'
 
 
@@ -11,6 +17,7 @@ export default class File extends React.Component {
     chunksRead: 0,
     buffer: null,
   }
+
   worker = new readFileChunks
 
   static propTypes = {
@@ -59,7 +66,6 @@ export default class File extends React.Component {
 
   joinChunks() {
     const {chunks} = this.state
-    console.log(chunks)
     const buffer = new ArrayBuffer(chunks[chunks.length-1].end)
     chunks.forEach(chunk => new Uint8Array(buffer).set(chunk.bytes, chunk.start))
 
@@ -70,17 +76,55 @@ export default class File extends React.Component {
   }
 
 
+  get progressBar() {
+    if (this.state.chunks.length === this.state.chunksRead) return null
+
+    let value = Math.floor((this.state.chunksRead/this.state.chunks.length) * 100)
+    return <LinearProgress className="progress" mode="determinate" value={value} />
+
+  }
 
 
   render() {
     return (
-      <div>
-        <button onClick={_ => this.props.remove() }>Remove</button>
-        <p>
-          <span>{this.state.file.name}</span>
-          <span>{this.state.buffer ? ` (${this.state.buffer.byteLength} bytes)` : '(loading)'}</span>
-        </p>
-      </div>
+      <Card className="file">
+
+          <CardHeader
+            className={`file-header ${this.state.buffer === null ? 'loading' : ''}`}
+            title={
+              <div className="wrap">
+                <p>{this.state.file.name}</p>
+                <div
+                  onTouchTap={_ => this.props.remove()}
+                  className="closebutton"
+                  alt="remove file from list"
+                  title="remove file from list" >
+                  <CloseIcon />
+                </div>
+              </div>
+            }
+            showExpandableButton={false}
+            actAsExpander={true}>
+
+
+
+
+            { this.progressBar }
+
+
+          </CardHeader>
+
+
+
+          <CardText expandable={true}>
+
+            <p>{this.state.buffer ? ` (${this.state.buffer.byteLength} bytes)` : '(loading)'}</p>
+
+          </CardText>
+
+
+
+      </Card>
     )
   }
 }

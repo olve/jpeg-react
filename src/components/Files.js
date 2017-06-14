@@ -64,11 +64,11 @@ export default class Files extends React.Component {
     return (
       <MuiThemeProvider>
 
-        <div>
+        <div className="files-wrap">
           <p>drop files.</p>
           <input type="file" onChange={this.onFileSelect.bind(this)} multiple={true} />
           <hr/>
-          <div>
+          <div className="files">
             {
               this.state.files.map((file, index) => <File
                 key={`file-${file.uuid}`}
