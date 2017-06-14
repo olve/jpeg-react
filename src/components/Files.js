@@ -5,6 +5,10 @@ import React from 'react'
 import uuid4 from 'uuid/v4'
 import { MuiThemeProvider} from 'material-ui'
 
+import AppBar from 'material-ui/AppBar'
+import FlatButton from 'material-ui/FlatButton'
+
+
 import File from './File'
 
 export default class Files extends React.Component {
@@ -64,11 +68,23 @@ export default class Files extends React.Component {
     return (
       <MuiThemeProvider>
 
+
+
+
         <div className="files-wrap">
-          <p>drop files.</p>
-          <input type="file" onChange={this.onFileSelect.bind(this)} multiple={true} />
-          <hr/>
+
+          <input className="add-file-input" ref={el => this.addFileButton = el} type="file" onChange={this.onFileSelect.bind(this)} multiple={true} />
+
+          <AppBar
+            title={<span>JPEG React</span>}
+            iconElementLeft={<div/>}
+            iconElementRight={<FlatButton onTouchTap={_ => this.addFileButton.click()} label="Add files" />}
+          />
+
           <div className="files">
+
+            {this.state.files.length ? null : <p className="add-files-hint">Drag & drop some JPEGs into this window</p>}
+
             {
               this.state.files.map((file, index) => <File
                 key={`file-${file.uuid}`}

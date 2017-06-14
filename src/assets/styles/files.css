@@ -1,5 +1,12 @@
-.files-wrap {
+.files-wrap,
+.files {
   height: 100%;
+}
+.files {
+  	/* compensate for app-bar height */
+    position: relative;
+    top: -64px;
+    padding-top: 64px;
 }
 .file {
   position: relative;
@@ -14,6 +21,7 @@
 .file-header .wrap {
   display: flex;
   justify-content: space-between;
+  position: relative;
 }
 .file .file-header span {
   color: #000 !important;
@@ -37,4 +45,16 @@
 }
 .file .closebutton:hover svg {
   fill: #000 !important;
+}
+.add-file-input {
+  display: none;
+}
+.add-files-hint {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  font-family: $fonts;
+  color: #aaa;
 }
