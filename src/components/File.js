@@ -73,16 +73,6 @@ export default class File extends React.Component {
 
   }
 
-
-  get progressBar() {
-    if (this.state.chunks.length === this.state.chunksRead) return null
-
-    let value = Math.floor((this.state.chunksRead/this.state.chunks.length) * 100)
-    return <LinearProgress className="progress" mode="determinate" value={value} />
-
-  }
-
-
   render() {
     return (
       <Card className="file">
@@ -104,10 +94,11 @@ export default class File extends React.Component {
             showExpandableButton={false}
             actAsExpander={true}>
 
-
-
-
-            { this.progressBar }
+            { this.state.chunks.length === this.state.chunksRead ? null : <LinearProgress
+              className="progress"
+              mode="determinate"
+              value={Math.floor((this.state.chunksRead/this.state.chunks.length) * 100)}
+            /> }
 
 
           </CardHeader>
