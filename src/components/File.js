@@ -1,9 +1,7 @@
 import React from 'react'
 
-import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card'
+import {Card, CardHeader, CardText} from 'material-ui/Card'
 import LinearProgress from 'material-ui/LinearProgress'
-import SvgIcon from 'material-ui/SvgIcon'
-
 import CloseIcon from 'material-ui/svg-icons/navigation/close'
 
 import readFileChunks from '../lib/readFileChunks.worker'
