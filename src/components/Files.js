@@ -65,9 +65,9 @@ export default class Files extends React.Component {
       <MuiThemeProvider>
 
         <div>
-          drop files.
+          <p>drop files.</p>
           <input type="file" onChange={this.onFileSelect.bind(this)} multiple={true} />
-
+          <hr/>
           <div>
             {
               this.state.files.map((file, index) => <File
