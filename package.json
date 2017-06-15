@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "material-ui": "^0.18.3",
-    "pjpg": "0.0.3",
+    "pjpg": "0.0.31",
     "promise-file-reader": "^0.3.1",
     "react": "15.4.2",
     "react-dom": "15.4.2",
