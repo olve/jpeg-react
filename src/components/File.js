@@ -105,7 +105,7 @@ export default class File extends React.Component {
 
 
 
-          <CardText expandable={true}>
+          <CardText expandable={this.state.buffer ? true : false}>
 
             <p>{this.state.buffer ? ` (${this.state.buffer.byteLength} bytes)` : '(loading)'}</p>
 
