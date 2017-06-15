@@ -5,18 +5,25 @@ import LinearProgress from 'material-ui/LinearProgress'
 import CloseIcon from 'material-ui/svg-icons/navigation/close'
 
 import readFileChunks from '../lib/readFileChunks.worker'
+//import joinFileChunks from '../lib/joinFileChunks.worker'
+
 
 
 export default class File extends React.Component {
 
   state = {
     file: this.props.file,
-    chunks: [],
+    numChunks: 0,
     chunksRead: 0,
     buffer: null,
   }
 
-  worker = new readFileChunks
+  get fileReadComplete() { return this.chunksRead === this.chunks.length }
+
+  tempBuffer = new ArrayBuffer(this.props.file.size)
+  tempArray = new Uint8Array(this.tempBuffer)
+
+  readWorker = new readFileChunks
 
   static propTypes = {
     file: React.PropTypes.object.isRequired,
@@ -27,50 +34,38 @@ export default class File extends React.Component {
     this.readFile()
   }
   componentWillUnmount() {
-    this.worker.terminate()
+    this.readWorker.terminate()
     this.state = {}
   }
 
+
+
   readFile() {
-    this.worker.onmessage = ({data}) => {
+    this.readWorker.onmessage = ({data}) => {
 
-      this.setState({chunks: data.chunks}, _ => {
+      this.setState({numChunks: data.numChunks}, _ => {
 
-        this.worker.onmessage = this.receiveChunk.bind(this)
-        this.worker.postMessage({}) //request next chunk
+        this.readWorker.onmessage = this.receiveChunk.bind(this)
+        this.readWorker.postMessage({}) //request next chunk
 
       })
 
     }
 
-    this.worker.postMessage(this.state.file)
+    this.readWorker.postMessage(this.state.file)
   }
 
   receiveChunk({data}) {
 
-    const chunks = [ ...this.state.chunks ]
-    chunks[this.state.chunksRead].bytes = data.chunk
+    this.tempArray.set(data.bytes, data.start)
 
-    this.setState({chunks, chunksRead: this.state.chunksRead+1}, _ => {
-      if (this.state.chunksRead === chunks.length) {
-        this.worker.terminate()
-        this.joinChunks()
-      }
+    this.setState({chunksRead: 1+this.state.chunksRead}, _ => {
+      if   (this.state.chunksRead !== this.state.numChunks) this.readWorker.postMessage({}) //request next chunk
       else {
-        this.worker.postMessage({}) //request next chunk
+        this.setState({buffer: this.tempBuffer}, _ => this.tempBuffer = null)
+        this.readWorker.terminate()
       }
     })
-  }
-
-  joinChunks() {
-    const {chunks} = this.state
-    const buffer = new ArrayBuffer(chunks[chunks.length-1].end)
-    chunks.forEach(chunk => new Uint8Array(buffer).set(chunk.bytes, chunk.start))
-
-    this.setState({
-      buffer,
-    })
-
   }
 
   render() {
@@ -94,10 +89,10 @@ export default class File extends React.Component {
             showExpandableButton={false}
             actAsExpander={true}>
 
-            { this.state.chunks.length === this.state.chunksRead ? null : <LinearProgress
+            { this.state.numChunks === this.state.chunksRead ? null : <LinearProgress
               className="progress"
               mode="determinate"
-              value={Math.floor((this.state.chunksRead/this.state.chunks.length) * 100)}
+              value={Math.floor((this.state.chunksRead/this.state.numChunks) * 100)}
             /> }
 
 
@@ -105,7 +100,7 @@ export default class File extends React.Component {
 
 
 
-          <CardText expandable={this.state.buffer ? true : false}>
+          <CardText expandable={this.state.buffer !== null ? true : false}>
 
             <p>{this.state.buffer ? ` (${this.state.buffer.byteLength} bytes)` : '(loading)'}</p>
 

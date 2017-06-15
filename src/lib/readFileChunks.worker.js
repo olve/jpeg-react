@@ -17,7 +17,7 @@ self.onmessage = ({data}) => {
   chunker = new FileChunker(file, CHUNK_SIZE)
 
   postMessage({
-    chunks: chunker.chunks
+    numChunks: chunker.chunks.length
   })
 
 
