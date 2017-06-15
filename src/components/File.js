@@ -5,9 +5,8 @@ import LinearProgress from 'material-ui/LinearProgress'
 import CloseIcon from 'material-ui/svg-icons/navigation/close'
 
 import readFileChunks from '../lib/readFileChunks.worker'
-//import joinFileChunks from '../lib/joinFileChunks.worker'
 
-
+import Jpeg from './Jpeg'
 
 export default class File extends React.Component {
 
@@ -16,9 +15,8 @@ export default class File extends React.Component {
     numChunks: 0,
     chunksRead: 0,
     buffer: null,
+    expanded: false,
   }
-
-  get fileReadComplete() { return this.chunksRead === this.chunks.length }
 
   tempBuffer = new ArrayBuffer(this.props.file.size)
   tempArray = new Uint8Array(this.tempBuffer)
@@ -68,6 +66,21 @@ export default class File extends React.Component {
     })
   }
 
+  getFileTypeView() {
+    if (!this.state.buffer) return null
+    const key = `view-${this.state.file.uuid}`
+    switch (this.state.file.type) {
+      case 'image/jpeg':
+        return <Jpeg file={this.state.file} buffer={this.state.buffer} key={key} />
+      default:
+        return <p>unknown filetype</p>
+    }
+  }
+
+  toggleExpanded() {
+    this.setState({expanded: !this.state.expanded})
+  }
+
   render() {
     return (
       <Card className="file">
@@ -87,9 +100,9 @@ export default class File extends React.Component {
               </div>
             }
             showExpandableButton={false}
-            actAsExpander={true}>
+            onTouchTap={this.toggleExpanded.bind(this)}>
 
-            { this.state.numChunks === this.state.chunksRead ? null : <LinearProgress
+            { this.state.buffer ? null : <LinearProgress
               className="progress"
               mode="determinate"
               value={Math.floor((this.state.chunksRead/this.state.numChunks) * 100)}
@@ -98,15 +111,9 @@ export default class File extends React.Component {
 
           </CardHeader>
 
-
-
-          <CardText expandable={this.state.buffer !== null ? true : false}>
-
-            <p>{this.state.buffer ? ` (${this.state.buffer.byteLength} bytes)` : '(loading)'}</p>
-
-          </CardText>
-
-
+          <div className={`content ${this.state.expanded ? 'expanded' : ''}`}>
+            { this.getFileTypeView() }
+          </div>
 
       </Card>
     )

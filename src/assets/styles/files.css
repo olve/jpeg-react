@@ -11,10 +11,14 @@
 .file {
   position: relative;
   margin: 20px;
-  padding: 25px;
+  padding: 41px;
+}
+.file-header {
+  padding: 0px !important;
 }
 .file-header > div,
 .file-header > div > span {
+  cursor: pointer;
   padding-right: 0px !important;
   width: 100%;
 }
@@ -57,4 +61,11 @@
   justify-content: center;
   font-family: $fonts;
   color: #aaa;
+}
+.file .content {
+  display: none;
+  margin-top: 40px;
+}
+.file .content.expanded {
+  display: flex;
 }
