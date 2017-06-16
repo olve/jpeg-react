@@ -1,6 +1,6 @@
 import React from 'react'
 
-import {Card, CardHeader, CardText} from 'material-ui/Card'
+import { Card, CardHeader } from 'material-ui/Card'
 import LinearProgress from 'material-ui/LinearProgress'
 import CloseIcon from 'material-ui/svg-icons/navigation/close'
 
