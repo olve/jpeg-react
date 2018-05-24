@@ -26,7 +26,7 @@ export default class FileChunker {
       chunks.push({
         start: (num-1)*this.chunkSize,
         end: (num === numChunks) ? this.file.size : num * this.chunkSize,
-     })
+      })
     }
     return chunks
   }
@@ -36,9 +36,7 @@ export default class FileChunker {
 
     const chunk = new FileReaderSync().readAsArrayBuffer(slice)
     return {bytes: new Uint8Array(chunk), start}
-
   }
-
 
 
 }

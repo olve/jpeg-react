@@ -68,9 +68,6 @@ export default class Files extends React.Component {
     return (
       <MuiThemeProvider>
 
-
-
-
         <div className="files-wrap">
 
           <input className="add-file-input" ref={el => this.addFileButton = el} type="file" onChange={this.onFileSelect.bind(this)} multiple={true} />

@@ -26,7 +26,7 @@ export default class File extends React.Component {
 
   static propTypes = {
     file: PropTypes.object.isRequired,
-    remove: PropTypes.func.isRequired,
+    remove: PropTypes.func.isRequired, //function removing this file from whatever list it's in.
   }
 
   componentDidMount() {
@@ -82,6 +82,11 @@ export default class File extends React.Component {
     this.setState({expanded: !this.state.expanded})
   }
 
+  cleanupAndRemoveSelf() {
+    this.readWorker.terminate()
+    this.props.remove()
+  }
+
   render() {
     return (
       <Card className="file">
@@ -92,7 +97,7 @@ export default class File extends React.Component {
               <div className="wrap">
                 <p>{this.state.file.name}</p>
                 <div
-                  onClick={_ => this.props.remove()}
+                  onClick={this.cleanupAndRemoveSelf.bind(this)}
                   className="closebutton"
                   alt="remove file from list"
                   title="remove file from list" >
