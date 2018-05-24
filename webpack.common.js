@@ -3,6 +3,9 @@ const webpack = require('webpack')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
+
+    mode: process.env.NODE_ENV || 'development',
+
     entry: {
       main: './src/index.js',
     },
@@ -92,6 +95,13 @@ module.exports = {
         extensions: ['.js', '.jsx']
     },
 
+    optimization: {
+      splitChunks: {
+        name: 'vendor',
+        filename: 'vendor.bundle.js'
+      }
+    },
+
     plugins: [
         new CopyWebpackPlugin([
           { from: './src/index.html' },
@@ -101,12 +111,6 @@ module.exports = {
         new webpack.HotModuleReplacementPlugin(),
         new webpack.NamedModulesPlugin(),
         new webpack.SourceMapDevToolPlugin(),
-        new webpack.optimize.CommonsChunkPlugin({
-          name: 'vendor',
-          filename: 'vendor.bundle.js'
-        }),
-        new webpack.DefinePlugin({
-          'process.env.ENV_NAME': JSON.stringify(process.env.ENV_NAME),
-        })
+//      new webpack.DefinePlugin({ 'process.env.ENV_NAME': JSON.stringify(process.env.ENV_NAME), })
      ],
 }
