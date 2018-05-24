@@ -78,7 +78,7 @@ export default class Files extends React.Component {
           <AppBar
             title={<span>JPEG React</span>}
             iconElementLeft={<div/>}
-            iconElementRight={<FlatButton onTouchTap={_ => this.addFileButton.click()} label="Add files" />}
+            iconElementRight={<FlatButton onClick={_ => this.addFileButton.click()} label="Add files" />}
           />
 
           <div className="files">

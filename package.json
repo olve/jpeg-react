@@ -28,7 +28,6 @@
     "react-dom": "^16.4.0",
     "react-relay": "^1.6.0",
     "react-router": "^4.2.0",
-    "react-tap-event-plugin": "^3.0.2",
     "relay-runtime": "^1.6.0",
     "uuid": "^3.2.1",
     "webpack-cli": "^2.1.4"

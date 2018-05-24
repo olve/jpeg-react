@@ -92,7 +92,7 @@ export default class File extends React.Component {
               <div className="wrap">
                 <p>{this.state.file.name}</p>
                 <div
-                  onTouchTap={_ => this.props.remove()}
+                  onClick={_ => this.props.remove()}
                   className="closebutton"
                   alt="remove file from list"
                   title="remove file from list" >
@@ -101,7 +101,7 @@ export default class File extends React.Component {
               </div>
             }
             showExpandableButton={false}
-            onTouchTap={this.toggleExpanded.bind(this)}>
+            onClick={this.toggleExpanded.bind(this)}>
 
             { this.state.buffer ? null : <LinearProgress
               className="progress"
