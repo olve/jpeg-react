@@ -12,7 +12,10 @@ module.exports = {
         path: path.join(__dirname, './dist'),
         filename: '[name].bundle.js',
         chunkFilename: '[name].bundle.js',
-        publicPath: '/'
+        publicPath: '/',
+
+        // workaround for unidentified window: https://github.com/webpack/webpack/issues/6642
+        globalObject: 'this'
     },
 
     module: {
