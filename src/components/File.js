@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 import { Card, CardHeader } from 'material-ui/Card'
 import LinearProgress from 'material-ui/LinearProgress'
@@ -24,8 +25,8 @@ export default class File extends React.Component {
   readWorker = new readFileChunks
 
   static propTypes = {
-    file: React.PropTypes.object.isRequired,
-    remove: React.PropTypes.func.isRequired,
+    file: PropTypes.object.isRequired,
+    remove: PropTypes.func.isRequired,
   }
 
   componentDidMount() {
