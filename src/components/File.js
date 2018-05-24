@@ -106,7 +106,7 @@ export default class File extends React.Component {
             { this.state.buffer ? null : <LinearProgress
               className="progress"
               mode="determinate"
-              value={Math.floor((this.state.chunksRead/this.state.numChunks) * 100)}
+              value={Math.floor((this.state.chunksRead/this.state.numChunks) * 100) || 0}
             /> }
 
 
