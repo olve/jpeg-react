@@ -11,10 +11,16 @@
 .file {
   position: relative;
   margin: 20px;
-  padding: 41px;
+  padding: 21px;
 }
 .file-header {
   padding: 0px !important;
+}
+.file-header .filename {
+}
+.file-header .filename .bytelength {
+  color: rgba(0,0,0,0.54) !important;
+  margin-left: 10px;
 }
 .file-header > div,
 .file-header > div > span {
@@ -65,6 +71,7 @@
 .file .content {
   display: none;
   margin-top: 40px;
+  padding: 0 20px 20px 20px;
 }
 .file .content.expanded {
   display: flex;

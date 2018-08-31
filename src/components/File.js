@@ -7,6 +7,8 @@ import CloseIcon from 'material-ui/svg-icons/navigation/close'
 
 import readFileChunks from '../lib/readFileChunks.worker'
 
+import formatBytes from '../lib/formatBytes'
+
 import Jpeg from './Jpeg'
 
 export default class File extends React.Component {
@@ -34,7 +36,7 @@ export default class File extends React.Component {
   }
   componentWillUnmount() {
     this.readWorker.terminate()
-    this.state = {}
+    this.setState({})
   }
 
 
@@ -95,7 +97,10 @@ export default class File extends React.Component {
             className={`file-header ${this.state.buffer === null ? 'loading' : ''}`}
             title={
               <div className="wrap">
-                <p>{this.state.file.name}</p>
+                <p className="filename">
+                  {this.state.file.name}
+                  {this.state.buffer ? <span className="bytelength">{formatBytes(this.state.buffer.byteLength)}</span> : null }
+                </p>
                 <div
                   onClick={this.cleanupAndRemoveSelf.bind(this)}
                   className="closebutton"
