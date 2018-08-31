@@ -2,11 +2,17 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import pjpg from 'pjpg'
 
+import { List } from 'material-ui/List'
+import Checkbox from 'material-ui/Checkbox'
+
+import JpegSegment from './JpegSegment'
+
 export default class Jpeg extends React.Component {
 
   jpeg = new pjpg(this.props.buffer)
 
   state = {
+    onlyShowMetadata: false,
     segments: this.jpeg.getSegments()
   }
 
@@ -15,25 +21,27 @@ export default class Jpeg extends React.Component {
     buffer: PropTypes.any.isRequired,
   }
 
-  componentDidMount() {
+  getMetaSegments() {
+    return this.state.segments.filter((segment) => segment.marker.byteMarker > 0xFFDF || segment.marker.byteMarker < 0xFFC0)
+  }
 
-
+  getSegments() {
+    return this.state.onlyShowMetadata ? this.getMetaSegments() : this.state.segments
   }
 
   render() {
-    console.log(this.state.segments.length)
     return (
       <div>
-        {this.jpeg.buffer.byteLength}
 
-        <ul>
-          {this.state.segments.map((segment, index) =>
-            <li key={`segment-${index}`}>
-              <span>{segment.marker.name}:</span>
-              <span>{`0x${segment.marker.byteMarker.toString(16)}`}</span>
-            </li>
-          )}
-        </ul>
+        <Checkbox
+          label="only show metadata"
+          checked={ this.state.onlyShowMetadata }
+          onCheck={ () => this.setState({onlyShowMetadata: !this.state.onlyShowMetadata}) }
+        />
+
+        <List>
+          {this.getSegments().map((segment, index) => <JpegSegment key={`segment-${index}`} segment={segment} />)}
+        </List>
 
       </div>
     )
